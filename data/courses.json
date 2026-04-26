@@ -1,0 +1,254 @@
+[
+  {
+    "id": "c1",
+    "slug": "matematika",
+    "title": "Matematika",
+    "subject": "Matematika",
+    "description": "Pelajari konsep matematika SMA mulai dari fungsi, limit, turunan, hingga statistika dasar.",
+    "icon": "Calculator",
+    "color": "brand",
+    "totalLessons": 6,
+    "completedLessons": 3,
+    "quizSlug": "matematika-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Pengenalan Fungsi & Relasi",
+        "type": "text",
+        "duration": "15 menit",
+        "completed": true,
+        "content": "<h2>Apa itu Fungsi?</h2><p>Fungsi adalah relasi khusus yang memetakan setiap anggota himpunan asal (domain) ke <strong>tepat satu</strong> anggota himpunan tujuan (kodomain).</p><h3>Notasi Fungsi</h3><p>Fungsi biasa ditulis sebagai <strong>f(x) = y</strong>, di mana x adalah input dan y adalah output.</p><ul><li>Domain: himpunan semua nilai x yang valid</li><li>Kodomain: himpunan semua kemungkinan nilai y</li><li>Range: himpunan nilai y yang benar-benar dihasilkan</li></ul><blockquote>Contoh: f(x) = 2x + 1. Jika x = 3, maka f(3) = 7.</blockquote>"
+      },
+      {
+        "id": "l2",
+        "title": "Video: Konsep Limit Fungsi",
+        "type": "video",
+        "duration": "12 menit",
+        "completed": true,
+        "videoUrl": "https://www.youtube.com/embed/riXcZT2ICjA"
+      },
+      {
+        "id": "l3",
+        "title": "Turunan Fungsi Aljabar",
+        "type": "text",
+        "duration": "20 menit",
+        "completed": true,
+        "content": "<h2>Turunan (Diferensial)</h2><p>Turunan mengukur laju perubahan suatu fungsi terhadap variabelnya. Notasi: <strong>f'(x)</strong> atau <strong>dy/dx</strong>.</p><h3>Aturan Dasar</h3><ol><li>Turunan konstanta = 0</li><li>Turunan x^n = n·x^(n-1)</li><li>Turunan penjumlahan = penjumlahan turunan</li></ol><p>Contoh: Jika f(x) = 3x² + 5x - 2, maka f'(x) = 6x + 5.</p>"
+      },
+      {
+        "id": "l4",
+        "title": "Materi PDF: Statistika Dasar",
+        "type": "pdf",
+        "duration": "30 menit",
+        "completed": false,
+        "pdfUrl": "https://www.africau.edu/images/default/sample.pdf"
+      },
+      {
+        "id": "l5",
+        "title": "Video: Integral Tak Tentu",
+        "type": "video",
+        "duration": "18 menit",
+        "completed": false,
+        "videoUrl": "https://www.youtube.com/embed/rfG8ce4nNh0"
+      },
+      {
+        "id": "l6",
+        "title": "Ringkasan & Latihan",
+        "type": "text",
+        "duration": "10 menit",
+        "completed": false,
+        "content": "<h2>Ringkasan Materi</h2><p>Pada modul ini kita telah mempelajari:</p><ul><li>Fungsi dan relasi</li><li>Konsep limit</li><li>Turunan fungsi aljabar</li><li>Statistika dasar</li><li>Integral tak tentu</li></ul><p>Lanjutkan ke <strong>kuis</strong> untuk menguji pemahamanmu!</p>"
+      }
+    ]
+  },
+  {
+    "id": "c2",
+    "slug": "bahasa-indonesia",
+    "title": "Bahasa Indonesia",
+    "subject": "Bahasa Indonesia",
+    "description": "Pahami teks eksposisi, teks editorial, hingga analisis puisi dan novel Indonesia.",
+    "icon": "BookOpen",
+    "color": "sage",
+    "totalLessons": 4,
+    "completedLessons": 1,
+    "quizSlug": "bahasa-indonesia-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Struktur Teks Eksposisi",
+        "type": "text",
+        "duration": "12 menit",
+        "completed": true,
+        "content": "<h2>Teks Eksposisi</h2><p>Teks eksposisi adalah paragraf yang bertujuan memaparkan informasi atau pengetahuan kepada pembaca.</p><h3>Struktur</h3><ol><li><strong>Tesis</strong> - pernyataan pendapat penulis</li><li><strong>Argumentasi</strong> - alasan pendukung</li><li><strong>Penegasan Ulang</strong> - kesimpulan</li></ol>"
+      },
+      {
+        "id": "l2",
+        "title": "Video: Menulis Teks Editorial",
+        "type": "video",
+        "duration": "15 menit",
+        "completed": false,
+        "videoUrl": "https://www.youtube.com/embed/1PnVor36_40"
+      },
+      {
+        "id": "l3",
+        "title": "Analisis Puisi Modern",
+        "type": "text",
+        "duration": "18 menit",
+        "completed": false,
+        "content": "<h2>Menganalisis Puisi</h2><p>Analisis puisi dilakukan dengan memperhatikan unsur intrinsik dan ekstrinsik.</p><h3>Unsur Intrinsik</h3><ul><li>Tema</li><li>Diksi</li><li>Imaji</li><li>Rima dan irama</li><li>Amanat</li></ul>"
+      },
+      {
+        "id": "l4",
+        "title": "Materi PDF: Panduan Novel",
+        "type": "pdf",
+        "duration": "25 menit",
+        "completed": false,
+        "pdfUrl": "https://www.africau.edu/images/default/sample.pdf"
+      }
+    ]
+  },
+  {
+    "id": "c3",
+    "slug": "bahasa-inggris",
+    "title": "Bahasa Inggris",
+    "subject": "Bahasa Inggris",
+    "description": "Tingkatkan kemampuan grammar, reading, dan writing dalam Bahasa Inggris.",
+    "icon": "Languages",
+    "color": "brand",
+    "totalLessons": 3,
+    "completedLessons": 0,
+    "quizSlug": "bahasa-inggris-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Tenses Overview",
+        "type": "text",
+        "duration": "20 menit",
+        "completed": false,
+        "content": "<h2>English Tenses</h2><p>Terdapat 16 tenses dalam bahasa Inggris, terbagi menjadi 4 kategori waktu (past, present, future, past future) dan 4 aspek (simple, continuous, perfect, perfect continuous).</p><h3>Yang Paling Umum Digunakan</h3><ul><li>Simple Present: He <strong>works</strong> every day.</li><li>Simple Past: She <strong>visited</strong> Bali last year.</li><li>Present Perfect: I <strong>have finished</strong> my homework.</li></ul>"
+      },
+      {
+        "id": "l2",
+        "title": "Video: Reading Comprehension",
+        "type": "video",
+        "duration": "14 menit",
+        "completed": false,
+        "videoUrl": "https://www.youtube.com/embed/wKSP7u-5lOQ"
+      },
+      {
+        "id": "l3",
+        "title": "Writing: Descriptive Text",
+        "type": "text",
+        "duration": "15 menit",
+        "completed": false,
+        "content": "<h2>Descriptive Text</h2><p>Descriptive text describes a particular person, place, or thing in detail.</p><h3>Generic Structure</h3><ol><li><strong>Identification</strong> - introduces the subject</li><li><strong>Description</strong> - details about the subject</li></ol>"
+      }
+    ]
+  },
+  {
+    "id": "c4",
+    "slug": "ipa-terpadu",
+    "title": "IPA Terpadu",
+    "subject": "IPA",
+    "description": "Konsep fisika, kimia, dan biologi yang terintegrasi untuk jenjang Paket C.",
+    "icon": "Atom",
+    "color": "sage",
+    "totalLessons": 3,
+    "completedLessons": 2,
+    "quizSlug": "ipa-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Hukum Newton",
+        "type": "text",
+        "duration": "15 menit",
+        "completed": true,
+        "content": "<h2>Hukum Gerak Newton</h2><ol><li><strong>Hukum I</strong> - Benda diam tetap diam, benda bergerak tetap bergerak dengan kecepatan konstan, kecuali ada gaya eksternal.</li><li><strong>Hukum II</strong> - F = m · a</li><li><strong>Hukum III</strong> - Aksi = reaksi</li></ol>"
+      },
+      {
+        "id": "l2",
+        "title": "Video: Reaksi Kimia Dasar",
+        "type": "video",
+        "duration": "12 menit",
+        "completed": true,
+        "videoUrl": "https://www.youtube.com/embed/XP7eNu3pjkc"
+      },
+      {
+        "id": "l3",
+        "title": "Sistem Pencernaan Manusia",
+        "type": "text",
+        "duration": "18 menit",
+        "completed": false,
+        "content": "<h2>Sistem Pencernaan</h2><p>Sistem pencernaan manusia terdiri dari saluran pencernaan dan organ aksesori.</p><h3>Urutan Saluran</h3><ol><li>Mulut</li><li>Kerongkongan</li><li>Lambung</li><li>Usus halus</li><li>Usus besar</li><li>Rektum</li></ol>"
+      }
+    ]
+  },
+  {
+    "id": "c5",
+    "slug": "ips-terpadu",
+    "title": "IPS Terpadu",
+    "subject": "IPS",
+    "description": "Ekonomi, geografi, sejarah, dan sosiologi dikemas secara ringkas dan aplikatif.",
+    "icon": "Globe2",
+    "color": "brand",
+    "totalLessons": 3,
+    "completedLessons": 0,
+    "quizSlug": "ips-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Dasar-dasar Ekonomi Makro",
+        "type": "text",
+        "duration": "18 menit",
+        "completed": false,
+        "content": "<h2>Ekonomi Makro</h2><p>Ekonomi makro mempelajari perekonomian secara menyeluruh, mencakup inflasi, pengangguran, dan pertumbuhan ekonomi.</p><h3>Indikator Utama</h3><ul><li>PDB (Produk Domestik Bruto)</li><li>Tingkat Inflasi</li><li>Tingkat Pengangguran</li><li>Neraca Pembayaran</li></ul>"
+      },
+      {
+        "id": "l2",
+        "title": "Video: Proklamasi Kemerdekaan",
+        "type": "video",
+        "duration": "10 menit",
+        "completed": false,
+        "videoUrl": "https://www.youtube.com/embed/PPPL36S06F0"
+      },
+      {
+        "id": "l3",
+        "title": "Perubahan Sosial",
+        "type": "text",
+        "duration": "14 menit",
+        "completed": false,
+        "content": "<h2>Perubahan Sosial</h2><p>Perubahan sosial adalah perubahan dalam struktur dan fungsi masyarakat dari waktu ke waktu.</p><h3>Faktor Pendorong</h3><ul><li>Kontak dengan budaya lain</li><li>Sistem pendidikan</li><li>Teknologi</li><li>Urbanisasi</li></ul>"
+      }
+    ]
+  },
+  {
+    "id": "c6",
+    "slug": "ppkn",
+    "title": "PPKn",
+    "subject": "PPKn",
+    "description": "Pendidikan Pancasila dan Kewarganegaraan untuk membentuk warga negara yang bertanggung jawab.",
+    "icon": "ShieldCheck",
+    "color": "sage",
+    "totalLessons": 2,
+    "completedLessons": 0,
+    "quizSlug": "ppkn-dasar",
+    "lessons": [
+      {
+        "id": "l1",
+        "title": "Nilai-nilai Pancasila",
+        "type": "text",
+        "duration": "12 menit",
+        "completed": false,
+        "content": "<h2>Pancasila sebagai Dasar Negara</h2><p>Pancasila adalah lima prinsip dasar negara Indonesia yang saling terkait.</p><ol><li>Ketuhanan Yang Maha Esa</li><li>Kemanusiaan yang adil dan beradab</li><li>Persatuan Indonesia</li><li>Kerakyatan yang dipimpin oleh hikmat kebijaksanaan dalam permusyawaratan/perwakilan</li><li>Keadilan sosial bagi seluruh rakyat Indonesia</li></ol>"
+      },
+      {
+        "id": "l2",
+        "title": "Hak & Kewajiban Warga Negara",
+        "type": "text",
+        "duration": "14 menit",
+        "completed": false,
+        "content": "<h2>Hak dan Kewajiban</h2><p>Sebagai warga negara Indonesia, kita memiliki hak dan kewajiban yang diatur dalam UUD 1945.</p><h3>Contoh Hak</h3><ul><li>Hak atas pendidikan</li><li>Hak mendapat perlindungan hukum</li><li>Hak berpendapat</li></ul><h3>Contoh Kewajiban</h3><ul><li>Membayar pajak</li><li>Menaati hukum</li><li>Membela negara</li></ul>"
+      }
+    ]
+  }
+]

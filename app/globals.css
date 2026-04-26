@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset & base styles - tipografi clean ala Apple/Notion */
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 24 24 27;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-ink-800;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  /* Scrollbar tipis & minimalis */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(228 228 231);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(212 212 216);
+  }
+
+  /* Focus ring yang elegan */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-2 ring-offset-white;
+  }
+}
+
+/* Utility klasik untuk prose konten pelajaran */
+@layer components {
+  .prose-lesson {
+    @apply text-ink-700 leading-relaxed;
+  }
+  .prose-lesson h2 {
+    @apply text-2xl font-semibold text-ink-900 mt-8 mb-3;
+  }
+  .prose-lesson h3 {
+    @apply text-xl font-semibold text-ink-900 mt-6 mb-2;
+  }
+  .prose-lesson p {
+    @apply mb-4;
+  }
+  .prose-lesson ul {
+    @apply list-disc pl-6 mb-4 space-y-1;
+  }
+  .prose-lesson ol {
+    @apply list-decimal pl-6 mb-4 space-y-1;
+  }
+  .prose-lesson strong {
+    @apply text-ink-900 font-semibold;
+  }
+  .prose-lesson a {
+    @apply text-brand-600 underline underline-offset-2 hover:text-brand-700;
+  }
+  .prose-lesson blockquote {
+    @apply border-l-4 border-brand-200 pl-4 italic text-ink-600 my-4;
+  }
+}
