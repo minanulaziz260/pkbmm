@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BookMarked, Flame, Target, Trophy } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { CourseCard } from '@/components/CourseCard';
+import { Greeting } from '@/components/Greeting';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { currentStudent, getCourses, getOverallProgress } from '@/lib/data';
 
@@ -19,9 +20,7 @@ export default async function DashboardPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Greeting */}
         <section className="animate-fade-in">
-          <p className="text-sm font-medium text-ink-500">
-            {getGreeting()}, 👋
-          </p>
+          <Greeting />
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl">
             Halo, {currentStudent.name.split(' ')[0]}
           </h1>
@@ -139,12 +138,4 @@ export default async function DashboardPage() {
       </main>
     </>
   );
-}
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 11) return 'Selamat pagi';
-  if (hour < 15) return 'Selamat siang';
-  if (hour < 18) return 'Selamat sore';
-  return 'Selamat malam';
 }
