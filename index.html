@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="Sekolah Kesetaraan Online — Platform belajar Paket A, B, dan C untuk seluruh warga Indonesia." />
+<meta name="theme-color" content="#0f766e" />
+<title>Sekolah Kesetaraan Online — Paket A, B, C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ============ Reset & Base ============ */
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);background:var(--bg);line-height:1.55;min-height:100vh;-webkit-font-smoothing:antialiased}
+  img,svg{max-width:100%;display:block}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+  input,select,textarea{font:inherit;color:inherit}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+
+  /* ============ Theme tokens ============ */
+  :root{
+    --bg:#f6faf9;
+    --surface:#ffffff;
+    --surface-2:#eef5f3;
+    --text:#0f1f1c;
+    --text-muted:#536968;
+    --border:#dbe7e4;
+    --primary:#0f766e;
+    --primary-600:#0b5e57;
+    --primary-50:#e6f4f2;
+    --accent:#f59e0b;
+    --danger:#dc2626;
+    --success:#16a34a;
+    --info:#2563eb;
+    --focus:#0f766e;
+    --shadow-sm:0 1px 2px rgba(15,31,28,.06), 0 1px 1px rgba(15,31,28,.04);
+    --shadow:0 4px 16px rgba(15,31,28,.08);
+    --shadow-lg:0 12px 32px rgba(15,31,28,.14);
+    --radius:14px;
+    --radius-sm:10px;
+    --radius-lg:20px;
+    --maxw:1280px;
+    --header-h:64px;
+    --sidebar-w:248px;
+    --font-scale:1;
+  }
+  /* Dark mode */
+  body[data-theme="dark"]{
+    --bg:#0a1714;--surface:#11201d;--surface-2:#162a26;--text:#e7f1ef;
+    --text-muted:#9fb6b2;--border:#23332f;--primary:#5eead4;--primary-600:#2dd4bf;
+    --primary-50:#0f2723;--accent:#fbbf24;--shadow:0 6px 24px rgba(0,0,0,.5);
+  }
+  /* High contrast */
+  body[data-contrast="high"]{
+    --bg:#ffffff;--surface:#ffffff;--surface-2:#f0f0f0;--text:#000000;--text-muted:#1a1a1a;
+    --border:#000000;--primary:#005f56;--primary-600:#003e38;--primary-50:#cfeae6;--focus:#000000;
+  }
+  body[data-theme="dark"][data-contrast="high"]{
+    --bg:#000000;--surface:#000000;--surface-2:#0a0a0a;--text:#ffffff;--text-muted:#e6e6e6;
+    --border:#ffffff;--primary:#5eead4;--primary-50:#0d2a26;--focus:#ffffff;
+  }
+  /* Font scale (accessibility) */
+  body{font-size:calc(16px * var(--font-scale))}
+  body[data-fontsize="lg"]{--font-scale:1.125}
+  body[data-fontsize="xl"]{--font-scale:1.28}
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+
+  /* ============ Utilities ============ */
+  .container{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,4vw,28px)}
+  .stack{display:flex;flex-direction:column;gap:16px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .grid{display:grid;gap:16px}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+    background:var(--primary-50);color:var(--primary-600);font-weight:600;font-size:.78rem;border:1px solid transparent}
+  .badge.warn{background:#fff3cd;color:#7a4f00;border-color:#ffd685}
+  .badge.danger{background:#fde2e2;color:#8a1c1c;border-color:#f5b3b3}
+  .badge.info{background:#dbeafe;color:#1e3a8a;border-color:#bfdbfe}
+  .badge.ok{background:#dcfce7;color:#14532d;border-color:#bbf7d0}
+  body[data-theme="dark"] .badge.warn{background:#3a2c0a;color:#fde68a;border-color:#5b4615}
+  body[data-theme="dark"] .badge.danger{background:#3a1414;color:#fecaca;border-color:#5b1f1f}
+  body[data-theme="dark"] .badge.info{background:#0f1f3a;color:#bfdbfe;border-color:#1e3a8a}
+  body[data-theme="dark"] .badge.ok{background:#0f3a1f;color:#bbf7d0;border-color:#14532d}
+  .muted{color:var(--text-muted)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .skip-link{position:absolute;left:8px;top:-40px;background:var(--primary);color:#fff;padding:8px 12px;border-radius:6px;z-index:1000}
+  .skip-link:focus{top:8px}
+  .pill{padding:2px 8px;border-radius:999px;font-size:.72rem;border:1px solid var(--border);color:var(--text-muted)}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;
+    border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
+    border:1px solid var(--border);font-weight:600;transition:transform .08s,background .15s,box-shadow .15s;
+    min-height:44px;line-height:1}
+  .btn:hover{background:var(--surface-2);text-decoration:none}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn.primary:hover{background:var(--primary-600);border-color:var(--primary-600)}
+  .btn.ghost{background:transparent;border-color:transparent}
+  .btn.ghost:hover{background:var(--surface-2)}
+  .btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+  .btn.success{background:var(--success);color:#fff;border-color:var(--success)}
+  .btn.sm{padding:6px 12px;min-height:36px;font-size:.875rem}
+  .btn.block{width:100%}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* Forms */
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-weight:600;font-size:.9rem}
+  .field .hint{color:var(--text-muted);font-size:.82rem}
+  .input,.select,.textarea{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--surface);width:100%;min-height:44px}
+  .textarea{min-height:96px;resize:vertical;font-family:inherit}
+  .input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-50)}
+  .input-group{position:relative}
+  .input-group .input{padding-right:44px}
+  .input-group .toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:36px;height:36px;border-radius:8px;display:grid;place-items:center;color:var(--text-muted)}
+  .input-group .toggle:hover{background:var(--surface-2)}
+
+  /* Card */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow-sm)}
+  .card h3{margin:0 0 4px}
+  .card.elev{box-shadow:var(--shadow)}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:thin}
+  .tab{padding:10px 14px;border-radius:8px 8px 0 0;color:var(--text-muted);font-weight:600;white-space:nowrap;border:0;background:none;min-height:44px}
+  .tab[aria-selected="true"]{color:var(--primary);background:var(--primary-50);border-bottom:2px solid var(--primary)}
+
+  /* Toast */
+  .toast-wrap{position:fixed;inset:auto 16px 16px 16px;display:flex;flex-direction:column;gap:8px;z-index:9000;pointer-events:none}
+  .toast{background:var(--text);color:var(--surface);padding:12px 14px;border-radius:10px;
+    box-shadow:var(--shadow-lg);max-width:520px;margin-inline:auto;font-weight:600;pointer-events:auto;
+    animation:slideUp .2s ease-out}
+  .toast.success{background:var(--success)}
+  .toast.error{background:var(--danger)}
+  .toast.info{background:var(--info);color:#fff}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(10,18,17,.55);display:none;align-items:flex-end;justify-content:center;z-index:1000;padding:0}
+  .modal.open{display:flex}
+  .modal .panel{background:var(--surface);width:100%;max-width:640px;border-radius:18px 18px 0 0;
+    padding:20px;max-height:92vh;overflow:auto;box-shadow:var(--shadow-lg)}
+  @media (min-width:720px){
+    .modal{align-items:center;padding:20px}
+    .modal .panel{border-radius:18px}
+  }
+  .modal header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .modal h2{margin:0;font-size:1.2rem}
+
+  /* ============ App layout ============ */
+  .app{min-height:100vh;display:flex;flex-direction:column}
+  .topbar{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);height:var(--header-h)}
+  .topbar .inner{display:flex;align-items:center;gap:12px;height:100%;max-width:var(--maxw);
+    margin-inline:auto;padding-inline:clamp(12px,3vw,24px)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px;color:var(--text)}
+  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#0d9488);
+    display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow-sm)}
+  .brand small{display:block;color:var(--text-muted);font-weight:500;font-size:.72rem;line-height:1.1}
+  .topbar .search{flex:1;max-width:520px;display:none}
+  @media (min-width:900px){.topbar .search{display:block}}
+  .topbar .actions{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .icon-btn{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--text);background:transparent}
+  .icon-btn:hover{background:var(--surface-2)}
+  .icon-btn .dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--accent);border-radius:50%}
+  .icon-btn{position:relative}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--primary-50);color:var(--primary-600);
+    display:grid;place-items:center;font-weight:800}
+
+  .body-wrap{display:flex;flex:1;max-width:var(--maxw);margin-inline:auto;width:100%}
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);padding:20px 12px;
+    background:var(--surface);position:sticky;top:var(--header-h);align-self:flex-start;
+    height:calc(100vh - var(--header-h));overflow:auto;display:none}
+  @media (min-width:900px){.sidebar{display:block}}
+  .nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:18px}
+  .nav-group .label{font-size:.72rem;font-weight:700;color:var(--text-muted);
+    text-transform:uppercase;letter-spacing:.5px;padding:8px 10px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+    color:var(--text);font-weight:600;background:none;border:0;text-align:left;width:100%;min-height:44px}
+  .nav-item:hover{background:var(--surface-2)}
+  .nav-item[aria-current="page"]{background:var(--primary-50);color:var(--primary-600)}
+  .nav-item .ico{flex-shrink:0;width:20px;height:20px;display:grid;place-items:center}
+  .nav-item .count{margin-left:auto;font-size:.72rem;background:var(--surface-2);padding:2px 8px;border-radius:999px}
+
+  .main{flex:1;padding:20px clamp(12px,3vw,24px);min-width:0}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .page-head h1{margin:0;font-size:clamp(1.4rem,3.2vw,1.9rem);line-height:1.1}
+  .page-head p{margin:6px 0 0;color:var(--text-muted)}
+
+  /* Bottom nav (mobile) */
+  .bottom-nav{position:sticky;bottom:0;display:flex;background:var(--surface);
+    border-top:1px solid var(--border);padding:6px;gap:2px;z-index:40}
+  @media (min-width:900px){.bottom-nav{display:none}}
+  .bottom-nav .nav-item{flex:1;flex-direction:column;gap:4px;font-size:.72rem;padding:6px;text-align:center;align-items:center}
+  .bottom-nav .nav-item .ico{width:22px;height:22px}
+  .bottom-nav .nav-item[aria-current="page"]{background:transparent;color:var(--primary)}
+
+  /* ============ Login screen ============ */
+  .auth{min-height:100vh;display:grid;place-items:center;padding:20px;
+    background:linear-gradient(135deg,#0f766e 0%,#134e4a 50%,#064e3b 100%);position:relative;overflow:hidden}
+  .auth::before,.auth::after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.16),transparent 60%);filter:blur(20px)}
+  .auth::before{top:-160px;right:-160px}
+  .auth::after{bottom:-220px;left:-180px;background:radial-gradient(circle,rgba(245,158,11,.4),transparent 60%)}
+  .auth .card{position:relative;width:100%;max-width:980px;display:grid;grid-template-columns:1fr;
+    overflow:hidden;padding:0;border-radius:24px;background:var(--surface)}
+  @media (min-width:900px){.auth .card{grid-template-columns:1.05fr 1fr}}
+  .auth .hero{padding:36px 28px;color:#fff;background:linear-gradient(160deg,#0f766e,#0b5e57 60%,#134e4a);
+    display:flex;flex-direction:column;justify-content:space-between;gap:24px;min-height:280px}
+  .auth .hero h1{font-size:clamp(1.5rem,3vw,2rem);margin:8px 0;line-height:1.15}
+  .auth .hero p{margin:0;color:#d1faf3}
+  .auth .hero ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+  .auth .hero li{display:flex;gap:10px;align-items:flex-start;color:#ecfdf5}
+  .auth .hero li svg{flex-shrink:0;color:#fbbf24;margin-top:2px}
+  .auth .form{padding:28px 24px}
+  .role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 18px}
+  .role-card{border:1.5px solid var(--border);background:var(--surface);border-radius:12px;padding:10px 8px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text);font-weight:600;font-size:.85rem}
+  .role-card svg{color:var(--primary)}
+  .role-card[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-50);color:var(--primary-600)}
+  .auth .demo-list{margin-top:14px;font-size:.82rem;background:var(--surface-2);border-radius:12px;padding:12px}
+  .auth .demo-list b{color:var(--primary-600)}
+  .auth .footer-links{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:.82rem;flex-wrap:wrap}
+
+  /* ============ Dashboard widgets ============ */
+  .stats-grid{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+  @media (min-width:720px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .stat .v{font-size:1.5rem;font-weight:800;line-height:1.1}
+  .stat .l{color:var(--text-muted);font-size:.82rem;margin-top:4px}
+  .stat .delta{font-size:.78rem;font-weight:700;margin-top:6px}
+  .stat .delta.up{color:var(--success)}.stat .delta.down{color:var(--danger)}
+
+  .progress{position:relative;height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--primary),#22d3ee);border-radius:inherit;transition:width .3s}
+  .progress.lg{height:14px}
+  .progress.danger > div{background:linear-gradient(90deg,#ef4444,#f97316)}
+  .progress.success > div{background:linear-gradient(90deg,#16a34a,#84cc16)}
+
+  /* Subjects grid */
+  .subjects{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .subject{padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);
+    display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s}
+  .subject:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .subject .ico{width:42px;height:42px;border-radius:12px;background:var(--primary-50);
+    color:var(--primary-600);display:grid;place-items:center;font-size:1.2rem}
+  .subject h4{margin:0;font-size:1rem}
+  .subject .meta{display:flex;justify-content:space-between;color:var(--text-muted);font-size:.82rem}
+
+  /* Materi list */
+  .materi-list{display:flex;flex-direction:column;gap:10px}
+  .materi-item{padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .materi-item .ico{width:42px;height:42px;border-radius:10px;background:var(--surface-2);
+    display:grid;place-items:center;color:var(--primary-600);flex-shrink:0}
+  .materi-item .info{flex:1;min-width:0}
+  .materi-item h5{margin:0;font-size:1rem}
+  .materi-item .info p{margin:4px 0 0;color:var(--text-muted);font-size:.85rem;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .materi-item .actions{display:flex;gap:6px;flex-wrap:wrap}
+
+  /* Quiz */
+  .quiz-card{padding:20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface)}
+  .quiz-q{font-size:1.05rem;font-weight:600;margin:8px 0 14px;line-height:1.5}
+  .quiz-options{display:grid;gap:8px}
+  .quiz-opt{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1.5px solid var(--border);
+    border-radius:12px;cursor:pointer;background:var(--surface);transition:all .15s;text-align:left;width:100%}
+  .quiz-opt:hover{background:var(--surface-2)}
+  .quiz-opt[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-50)}
+  .quiz-opt.correct{border-color:var(--success);background:#dcfce7;color:#14532d}
+  .quiz-opt.wrong{border-color:var(--danger);background:#fee2e2;color:#7f1d1d}
+  body[data-theme="dark"] .quiz-opt.correct{background:#0f3a1f;color:#bbf7d0}
+  body[data-theme="dark"] .quiz-opt.wrong{background:#3a1414;color:#fecaca}
+  .quiz-opt .marker{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);
+    display:grid;place-items:center;font-weight:700;flex-shrink:0;background:var(--surface)}
+  .quiz-opt[aria-pressed="true"] .marker{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .quiz-meta{display:flex;justify-content:space-between;align-items:center;color:var(--text-muted);
+    font-size:.85rem;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+  .quiz-timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
+  .quiz-timer.danger{color:var(--danger)}
+
+  /* Tables */
+  .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+  table{width:100%;border-collapse:collapse;min-width:560px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:.92rem}
+  th{background:var(--surface-2);font-weight:700;color:var(--text);position:sticky;top:0}
+  tbody tr:hover{background:var(--surface-2)}
+
+  /* Schedule */
+  .schedule-day{display:grid;grid-template-columns:80px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .schedule-day:last-child{border-bottom:0}
+  .schedule-day .day{font-weight:700;color:var(--primary-600)}
+  .schedule-day .items{display:flex;flex-direction:column;gap:8px}
+  .schedule-day .item{padding:10px 12px;background:var(--surface-2);border-radius:10px;display:flex;
+    align-items:center;gap:10px;flex-wrap:wrap}
+  .schedule-day .item .time{font-weight:700;font-variant-numeric:tabular-nums;color:var(--primary-600);min-width:90px}
+  .schedule-day .item .title{flex:1;min-width:140px}
+
+  /* Announcements */
+  .announce{padding:14px;border-left:4px solid var(--primary);background:var(--primary-50);
+    border-radius:var(--radius-sm);margin-bottom:10px}
+  .announce.warn{border-color:var(--accent);background:#fff7ed}
+  .announce.danger{border-color:var(--danger);background:#fee2e2}
+  body[data-theme="dark"] .announce.warn{background:#3a2c0a}
+  body[data-theme="dark"] .announce.danger{background:#3a1414}
+  .announce h5{margin:0 0 4px;font-size:1rem}
+  .announce time{display:block;font-size:.78rem;color:var(--text-muted);margin-bottom:4px}
+  .announce p{margin:0}
+
+  /* Forum */
+  .forum-thread{padding:14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;background:var(--surface)}
+  .forum-thread .meta{display:flex;gap:10px;align-items:center;color:var(--text-muted);font-size:.82rem;margin-bottom:6px}
+  .forum-thread .reply{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+
+  /* Certificate */
+  .cert{background:linear-gradient(160deg,#fffbeb,#fef3c7 60%,#fde68a);
+    border:8px double #b45309;border-radius:14px;padding:28px;text-align:center;color:#7c2d12;
+    font-family:"Lora",serif;position:relative;overflow:hidden}
+  .cert::before{content:"";position:absolute;inset:6px;border:1px solid #d97706;border-radius:8px;pointer-events:none}
+  .cert h2{font-size:1.6rem;margin:6px 0;letter-spacing:1px;color:#7c2d12}
+  .cert .name{font-size:1.6rem;font-weight:700;margin:14px 0;text-decoration:underline;text-decoration-color:#d97706;color:#78350f}
+  .cert .seal{font-size:2.4rem}
+
+  /* Chat (konseling) */
+  .chat{display:flex;flex-direction:column;gap:8px;height:340px;overflow:auto;padding:8px;
+    border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2)}
+  .chat .msg{max-width:85%;padding:10px 12px;border-radius:14px;background:var(--surface);
+    border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+  .chat .msg.me{align-self:flex-end;background:var(--primary);color:#fff;border-color:var(--primary)}
+  .chat .msg time{display:block;font-size:.7rem;opacity:.7;margin-top:4px}
+
+  /* Bar chart (CSS) */
+  .barchart{display:flex;align-items:flex-end;gap:8px;height:180px;padding:8px 0;border-bottom:1px dashed var(--border)}
+  .barchart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.72rem;color:var(--text-muted)}
+  .barchart .bar .b{width:100%;background:linear-gradient(180deg,var(--primary),#22d3ee);border-radius:6px 6px 0 0;min-height:4px}
+  .barchart .bar .v{font-weight:700;color:var(--text)}
+
+  /* Responsive helpers */
+  @media (max-width:599px){
+    .hide-sm{display:none !important}
+    .auth .hero{display:none}
+    .auth .form{padding:24px 18px}
+  }
+  @media print{
+    .topbar,.sidebar,.bottom-nav,.no-print{display:none !important}
+    .main{padding:0}
+    body{background:#fff}
+    .cert{box-shadow:none}
+  }
+  details summary{cursor:pointer;font-weight:600;padding:4px 0}
+  details[open] summary{margin-bottom:8px}
+  hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+</style>
+</head>
+<body data-theme="light" data-fontsize="md" data-contrast="normal">
+<a href="#main-content" class="skip-link">Lewati ke konten utama</a>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<section id="auth-screen" class="auth" aria-label="Halaman masuk">
+  <div class="card">
+    <div class="hero">
+      <div>
+        <div class="brand" style="color:#fff">
+          <div class="logo" aria-hidden="true">SK</div>
+          <div>
+            Sekolah Kesetaraan Online
+            <small style="color:#a7f3d0">Paket A · B · C</small>
+          </div>
+        </div>
+        <h1 style="margin-top:24px">Belajar tanpa batas usia,<br>raih ijazah resmi.</h1>
+        <p>Platform belajar daring untuk warga belajar Paket A (setara SD), Paket B (setara SMP), dan Paket C (setara SMA). Gratis, fleksibel, dan ramah HP.</p>
+      </div>
+      <ul aria-label="Manfaat utama">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Materi lengkap & video pembelajaran</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Kuis interaktif & simulasi UN</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Sertifikat digital & laporan progres</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Mode hemat data & aksesibel</li>
+      </ul>
+    </div>
+    <form id="login-form" class="form" novalidate aria-label="Formulir masuk">
+      <div class="brand" style="margin-bottom:6px">
+        <div class="logo" aria-hidden="true">SK</div>
+        <div>Selamat datang kembali<small>Pilih peran lalu masuk</small></div>
+      </div>
+      <fieldset style="border:0;padding:0;margin:8px 0 0">
+        <legend class="sr-only">Pilih peran</legend>
+        <div class="role-grid" role="group" aria-label="Peran">
+          <button type="button" class="role-card" data-role="siswa" aria-pressed="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            Siswa
+          </button>
+          <button type="button" class="role-card" data-role="guru" aria-pressed="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v14H2z"/><path d="M8 21h8M12 17v4"/></svg>
+            Guru / Tutor
+          </button>
+          <button type="button" class="role-card" data-role="admin" aria-pressed="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin
+          </button>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="login-email">Email atau NIS</label>
+        <input id="login-email" name="email" class="input" type="text" autocomplete="username" required placeholder="contoh: siti@kesetaraan.id" />
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="login-password">Kata sandi</label>
+        <div class="input-group">
+          <input id="login-password" name="password" class="input" type="password" autocomplete="current-password" required placeholder="••••••••" />
+          <button type="button" class="toggle" aria-label="Tampilkan kata sandi" id="toggle-pw">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <label class="row" style="gap:6px;font-size:.88rem"><input type="checkbox" id="remember" /> Ingat saya</label>
+        <a href="#" id="forgot-pw">Lupa kata sandi?</a>
+      </div>
+      <button class="btn primary block" type="submit" style="margin-top:14px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Masuk ke akun saya
+      </button>
+      <button class="btn block" type="button" id="demo-login" style="margin-top:8px">Masuk cepat sebagai demo</button>
+      <div class="demo-list" aria-label="Akun demo">
+        <div><b>Akun demo</b> — semua kata sandi: <code>demo123</code></div>
+        <div>Siswa: <code>siti@kesetaraan.id</code> · Guru: <code>budi@kesetaraan.id</code> · Admin: <code>admin@kesetaraan.id</code></div>
+      </div>
+      <div class="footer-links">
+        <a href="#" id="register-link">Belum punya akun? Daftar</a>
+        <span class="muted">v1.0 · 100% offline-ready</span>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-screen" class="app" hidden>
+  <header class="topbar" role="banner">
+    <div class="inner">
+      <button class="icon-btn" id="menu-btn" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <a href="#dashboard" class="brand" aria-label="Beranda">
+        <div class="logo">SK</div>
+        <div class="hide-sm">
+          Sekolah Kesetaraan
+          <small>Paket A · B · C</small>
+        </div>
+      </a>
+      <div class="search">
+        <input id="global-search" class="input" type="search" placeholder="Cari materi, kuis, atau pengumuman…" aria-label="Cari" />
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="acc-btn" aria-label="Pengaturan aksesibilitas" title="Aksesibilitas">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M3 9h18M12 9v13M8 22l4-9 4 9"/></svg>
+        </button>
+        <button class="icon-btn" id="theme-btn" aria-label="Ganti tema">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="icon-btn" id="notif-btn" aria-label="Notifikasi" data-count="3">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="dot" aria-hidden="true"></span>
+        </button>
+        <button class="avatar" id="profile-btn" aria-label="Profil saya"><span id="avatar-initial">S</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="body-wrap">
+    <nav class="sidebar" id="sidebar" aria-label="Navigasi utama"></nav>
+    <main class="main" id="main-content" tabindex="-1">
+      <!-- Views injected here -->
+      <div id="view-root"></div>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navigasi bawah" id="bottom-nav"></nav>
+</div>
+
+<!-- Toast & Modal -->
+<div class="toast-wrap" id="toasts" aria-live="polite" aria-atomic="true"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <div class="panel">
+    <header>
+      <h2 id="modal-title">Judul</h2>
+      <button class="icon-btn" id="modal-close" aria-label="Tutup">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* ===========================================================
+   Sekolah Kesetaraan Online — single-file SPA
+   =========================================================== */
+"use strict";
+
+/* ===== Persistent storage (best-effort) ===== */
+const Store = {
+  get(k, fb){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):fb }catch(e){ return fb } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k) }catch(e){} },
+};
+
+/* ===== Helpers ===== */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const html = (str, ...vals) => str.reduce((a,c,i)=>a+c+(vals[i]==null?'':vals[i]),'');
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+const fmtRel = d => {
+  const diff = (Date.now()-new Date(d).getTime())/1000;
+  if(diff<60) return 'baru saja';
+  if(diff<3600) return Math.floor(diff/60)+' menit lalu';
+  if(diff<86400) return Math.floor(diff/3600)+' jam lalu';
+  if(diff<86400*7) return Math.floor(diff/86400)+' hari lalu';
+  return fmtDate(d);
+};
+const initials = name => (name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('');
+const toast = (msg, type='info', ms=3200) => {
+  const wrap = $('#toasts');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.role = 'status';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(10px)'; setTimeout(()=>el.remove(),250) }, ms);
+};
+const openModal = (title, bodyHtml) => {
+  $('#modal-title').textContent = title;
+  $('#modal-body').innerHTML = bodyHtml;
+  const m = $('#modal'); m.hidden=false; m.classList.add('open');
+  setTimeout(()=>{ const f=m.querySelector('input,button,a,textarea,select'); f && f.focus() }, 50);
+};
+const closeModal = () => { const m=$('#modal'); m.hidden=true; m.classList.remove('open') };
+
+/* ===== Dummy data ===== */
+const DATA = {
+  users: [
+    { id:'u1', name:'Siti Nurhaliza', email:'siti@kesetaraan.id', password:'demo123', role:'siswa',
+      paket:'C', kelas:'XII-IPS', usia:24, kota:'Bandung', joined:'2025-08-12', avatar:'SN', telp:'0812-3456-7890' },
+    { id:'u2', name:'Budi Santoso',  email:'budi@kesetaraan.id', password:'demo123', role:'guru',
+      mapel:['Matematika','Fisika'], paket:['B','C'], joined:'2024-02-01', avatar:'BS' },
+    { id:'u3', name:'Admin Utama',   email:'admin@kesetaraan.id', password:'demo123', role:'admin',
+      avatar:'AU' },
+    { id:'u4', name:'Rahmat Hidayat', email:'rahmat@kesetaraan.id', password:'demo123', role:'siswa',
+      paket:'B', kelas:'IX', usia:18, kota:'Surabaya', joined:'2025-09-10', avatar:'RH' },
+    { id:'u5', name:'Dewi Lestari',  email:'dewi@kesetaraan.id',  password:'demo123', role:'siswa',
+      paket:'A', kelas:'VI', usia:16, kota:'Yogyakarta', joined:'2025-07-04', avatar:'DL' },
+    { id:'u6', name:'Sari Wahyuni',  email:'sari@kesetaraan.id',  password:'demo123', role:'guru',
+      mapel:['Bahasa Indonesia','Bahasa Inggris'], paket:['A','B','C'], joined:'2023-08-15', avatar:'SW' },
+  ],
+  paket: [
+    { id:'A', label:'Paket A (Setara SD)', desc:'Untuk warga belajar yang ingin menyelesaikan jenjang pendidikan dasar.', siswa:248, color:'#10b981' },
+    { id:'B', label:'Paket B (Setara SMP)', desc:'Lanjutan pendidikan dasar setara sekolah menengah pertama.', siswa:412, color:'#0ea5e9' },
+    { id:'C', label:'Paket C (Setara SMA)', desc:'Setara SMA dengan jurusan IPA, IPS, dan Bahasa.', siswa:1024, color:'#f59e0b' },
+  ],
+  subjects: {
+    A: [
+      { id:'a-mtk', name:'Matematika Dasar', icon:'∑', materi:24, kuis:8, color:'#10b981' },
+      { id:'a-bin', name:'Bahasa Indonesia', icon:'📖', materi:20, kuis:6, color:'#3b82f6' },
+      { id:'a-ipa', name:'IPA', icon:'🌱', materi:18, kuis:5, color:'#22c55e' },
+      { id:'a-ips', name:'IPS', icon:'🌏', materi:16, kuis:5, color:'#f59e0b' },
+      { id:'a-pkn', name:'PKn', icon:'⚖️', materi:12, kuis:4, color:'#ef4444' },
+      { id:'a-agm', name:'Pendidikan Agama', icon:'🕌', materi:14, kuis:4, color:'#8b5cf6' },
+    ],
+    B: [
+      { id:'b-mtk', name:'Matematika', icon:'∫', materi:32, kuis:12, color:'#10b981' },
+      { id:'b-bin', name:'Bahasa Indonesia', icon:'📖', materi:26, kuis:9, color:'#3b82f6' },
+      { id:'b-bin-en', name:'Bahasa Inggris', icon:'🗣️', materi:24, kuis:8, color:'#06b6d4' },
+      { id:'b-ipa', name:'IPA Terpadu', icon:'⚗️', materi:28, kuis:10, color:'#22c55e' },
+      { id:'b-ips', name:'IPS Terpadu', icon:'🌏', materi:26, kuis:8, color:'#f59e0b' },
+      { id:'b-tik', name:'TIK & Literasi Digital', icon:'💻', materi:18, kuis:6, color:'#6366f1' },
+    ],
+    C: [
+      { id:'c-mtk', name:'Matematika', icon:'∑', materi:40, kuis:14, color:'#10b981' },
+      { id:'c-bin', name:'Bahasa Indonesia', icon:'📖', materi:32, kuis:10, color:'#3b82f6' },
+      { id:'c-eng', name:'Bahasa Inggris', icon:'🗣️', materi:30, kuis:10, color:'#06b6d4' },
+      { id:'c-fis', name:'Fisika', icon:'⚛️', materi:28, kuis:9, color:'#8b5cf6' },
+      { id:'c-eko', name:'Ekonomi', icon:'💹', materi:26, kuis:8, color:'#f59e0b' },
+      { id:'c-sej', name:'Sejarah Indonesia', icon:'🏛️', materi:24, kuis:7, color:'#ef4444' },
+      { id:'c-sos', name:'Sosiologi', icon:'🤝', materi:22, kuis:6, color:'#ec4899' },
+      { id:'c-kew', name:'Kewirausahaan', icon:'💼', materi:20, kuis:6, color:'#14b8a6' },
+    ],
+  },
+  materi: [
+    /* sample of materi for demo */
+    { id:'m1', subjectId:'c-mtk', title:'Limit Fungsi Aljabar', type:'video', durasi:'18 menit',
+      desc:'Memahami konsep limit, sifat-sifat, dan teknik penyelesaian limit fungsi aljabar.',
+      konten:'Limit menggambarkan perilaku fungsi saat variabel mendekati suatu nilai. Sifat utama: limit jumlah, kelipatan, dan hasil bagi.\n\nContoh: lim x→2 (x²−4)/(x−2) = lim x→2 (x+2) = 4.\n\nTeknik: substitusi langsung, faktorisasi, mengalikan sekawan, dan dalil L\'Hôpital (kelas lanjut).',
+      progress:60 },
+    { id:'m2', subjectId:'c-mtk', title:'Turunan Fungsi', type:'reading', durasi:'25 menit',
+      desc:'Aturan turunan dasar dan aplikasinya dalam masalah maksimum-minimum.',
+      konten:'Turunan f(x) didefinisikan sebagai f\'(x) = lim h→0 [f(x+h)−f(x)]/h.\n\nAturan dasar:\n• d/dx (xⁿ) = nxⁿ⁻¹\n• Turunan jumlah = jumlah turunan\n• Aturan rantai untuk fungsi komposisi.',
+      progress:35 },
+    { id:'m3', subjectId:'c-bin', title:'Teks Editorial: Struktur & Kaidah', type:'reading', durasi:'15 menit',
+      desc:'Mengidentifikasi struktur teks editorial dan kaidah kebahasaannya.',
+      konten:'Teks editorial: tesis → argumen → penegasan ulang. Bersifat argumentatif, menggunakan kata adverbia frekuentatif (sering, biasanya), konjungsi kausalitas, kata kerja mental, dan kata kerja material.',
+      progress:80 },
+    { id:'m4', subjectId:'c-eng', title:'Conditional Sentences (Type 1, 2, 3)', type:'video', durasi:'22 menit',
+      desc:'Pembentukan dan penggunaan kalimat pengandaian tipe 1, 2, dan 3.',
+      konten:'Type 1 (real future): If + V1, will + V1.\nType 2 (unreal present): If + V2, would + V1.\nType 3 (unreal past): If + had V3, would have V3.',
+      progress:25 },
+    { id:'m5', subjectId:'c-fis', title:'Hukum Newton & Gaya', type:'reading', durasi:'20 menit',
+      desc:'Tiga hukum gerak Newton dan penerapannya pada bidang miring & lift.',
+      konten:'I. Inersia: benda diam tetap diam jika ΣF=0.\nII. F=m·a.\nIII. Aksi-reaksi: gaya berlawanan arah, sama besar.',
+      progress:50 },
+    { id:'m6', subjectId:'c-eko', title:'Hukum Permintaan & Penawaran', type:'reading', durasi:'18 menit',
+      desc:'Mekanisme harga keseimbangan pasar dan pergeseran kurva.',
+      konten:'Hukum permintaan: harga naik → kuantitas diminta turun, ceteris paribus. Hukum penawaran: harga naik → kuantitas ditawarkan naik. Titik keseimbangan: D=S.',
+      progress:90 },
+    { id:'m7', subjectId:'c-sej', title:'Proklamasi Kemerdekaan & Pembentukan NKRI', type:'video', durasi:'28 menit',
+      desc:'Peristiwa Rengasdengklok hingga sidang PPKI 18 Agustus 1945.',
+      konten:'17 Agustus 1945 — Soekarno-Hatta memproklamasikan kemerdekaan. Sidang PPKI mengesahkan UUD 1945, memilih presiden dan wakil presiden, serta membentuk 12 kementerian.',
+      progress:100 },
+    { id:'m8', subjectId:'b-mtk', title:'Persamaan Linear Satu Variabel', type:'reading', durasi:'14 menit',
+      desc:'Menyelesaikan persamaan linear satu variabel.',
+      konten:'PLSV bentuk umum: ax + b = 0. Selesaian: x = −b/a, dengan a≠0.',
+      progress:75 },
+    { id:'b-tik-1', subjectId:'b-tik', title:'Etika Bermedia Sosial', type:'reading', durasi:'12 menit',
+      desc:'Bijak menggunakan media sosial: hoaks, ujaran kebencian, dan jejak digital.',
+      konten:'Periksa fakta sebelum membagikan informasi. Lindungi data pribadi. Hindari ujaran kebencian. Jejak digital bersifat permanen.',
+      progress:40 },
+    { id:'a-mtk-1', subjectId:'a-mtk', title:'Operasi Hitung Bilangan Bulat', type:'reading', durasi:'10 menit',
+      desc:'Penjumlahan, pengurangan, perkalian, dan pembagian bilangan bulat.',
+      konten:'Bilangan bulat = {…,−3,−2,−1,0,1,2,3,…}. Aturan tanda: (−)·(−)=(+), (−)+(+) = selisih dengan tanda angka terbesar.',
+      progress:55 },
+  ],
+  kuis: [
+    {
+      id:'q1', subjectId:'c-mtk', title:'Kuis Limit Fungsi', durasiMenit:15, soal:[
+        { q:'Nilai dari lim x→3 (x²−9)/(x−3) adalah …', opts:['3','6','9','tidak ada'], a:1, expl:'Faktorkan (x²−9)=(x−3)(x+3). Setelah dicoret: lim x→3 (x+3) = 6.' },
+        { q:'lim x→0 (sin x)/x = …', opts:['0','1','∞','tidak terdefinisi'], a:1, expl:'Limit istimewa: lim x→0 sin(x)/x = 1.' },
+        { q:'lim x→∞ (3x²+2)/(x²+5) = …', opts:['0','1','3','∞'], a:2, expl:'Bagi pembilang dan penyebut dengan x². Hasilnya 3/1 = 3.' },
+        { q:'lim x→2 (x³−8)/(x−2) = …', opts:['8','12','4','0'], a:1, expl:'(x³−8)=(x−2)(x²+2x+4). Subst x=2 → 4+4+4=12.' },
+        { q:'Bentuk 0/0 disebut …', opts:['Limit terhingga','Bentuk tak tentu','Limit tak hingga','Asimtot'], a:1, expl:'0/0 adalah salah satu bentuk tak tentu yang harus dimanipulasi.' },
+      ]
+    },
+    {
+      id:'q2', subjectId:'c-bin', title:'Kuis Teks Editorial', durasiMenit:10, soal:[
+        { q:'Struktur teks editorial yang benar adalah …', opts:['Tesis–Argumen–Penegasan ulang','Orientasi–Komplikasi–Resolusi','Pembuka–Isi–Penutup','Abstrak–Tujuan–Hasil'], a:0, expl:'Teks editorial bersifat argumentatif: tesis → argumen → penegasan ulang.' },
+            { q:'Konjungsi "karena", "sebab" termasuk konjungsi …', opts:['Temporal','Kausalitas','Pertentangan','Tambahan'], a:1, expl:'Konjungsi sebab-akibat = kausalitas.' },
+            { q:'Kata "berpendapat", "menduga", "menyimpulkan" disebut kata kerja …', opts:['Material','Mental','Relasional','Eksistensial'], a:1, expl:'Kata kerja yang menyatakan persepsi/pikiran = kata kerja mental.' },
+            { q:'Tujuan utama teks editorial adalah …', opts:['Menghibur pembaca','Memberikan opini redaksi','Menceritakan ulang berita','Menjelaskan teknis'], a:1, expl:'Editorial menyampaikan opini redaksi terhadap suatu peristiwa aktual.' },
+      ]
+    },
+    {
+      id:'q3', subjectId:'c-fis', title:'Kuis Hukum Newton', durasiMenit:12, soal:[
+        { q:'Hukum Newton I dikenal sebagai hukum …', opts:['Aksi-reaksi','Inersia','Percepatan','Kekekalan energi'], a:1, expl:'Hukum I = inersia: benda mempertahankan keadaannya.' },
+        { q:'Persamaan F = m·a adalah hukum Newton ke …', opts:['I','II','III','IV'], a:1, expl:'F=m·a adalah hukum Newton II.' },
+        { q:'Sebuah benda 5 kg mengalami percepatan 2 m/s². Gaya yang bekerja adalah …', opts:['2 N','5 N','10 N','25 N'], a:2, expl:'F = m·a = 5·2 = 10 N.' },
+        { q:'Pasangan aksi-reaksi bekerja pada …', opts:['Benda yang sama','Dua benda berbeda','Bidang yang sama','Tidak ada'], a:1, expl:'Aksi-reaksi selalu pada dua benda berbeda, sama besar berlawanan arah.' },
+      ]
+    },
+  ],
+  pengumuman: [
+    { id:'p1', tgl:'2026-04-22', judul:'Jadwal Ujian Akhir Semester Genap 2025/2026', isi:'UAS akan dilaksanakan 12–24 Mei 2026 secara daring. Pastikan sudah mengumpulkan tugas akhir paling lambat 10 Mei.', level:'warn' },
+    { id:'p2', tgl:'2026-04-18', judul:'Beasiswa LPDP untuk Lulusan Paket C', isi:'Bagi lulusan terbaik Paket C jurusan apapun, terbuka kesempatan beasiswa kuliah S1 melalui LPDP Kesetaraan. Pendaftaran: 1–30 Juni 2026.', level:'info' },
+    { id:'p3', tgl:'2026-04-15', judul:'Webinar: Karier Tanpa Ijazah Konvensional', isi:'Diskusi bersama alumni sukses pada Sabtu, 4 Mei 2026 pukul 19:00 WIB. Gratis untuk semua siswa.', level:'info' },
+    { id:'p4', tgl:'2026-04-10', judul:'Pemeliharaan Sistem 30 April', isi:'Sistem akan offline 22:00–24:00 WIB untuk perbaikan server. Mohon menyelesaikan kuis sebelum jam tersebut.', level:'danger' },
+  ],
+  jadwal: [
+    { hari:'Senin', items:[
+      { jam:'19:00–20:00', mapel:'Matematika', tutor:'Pak Budi', mode:'Live Zoom', paket:'C' },
+      { jam:'20:15–21:00', mapel:'Bahasa Inggris', tutor:'Bu Sari', mode:'Diskusi Forum', paket:'C' },
+    ]},
+    { hari:'Selasa', items:[
+      { jam:'19:00–20:00', mapel:'Fisika', tutor:'Pak Budi', mode:'Live Zoom', paket:'C' },
+    ]},
+    { hari:'Rabu', items:[
+      { jam:'18:30–19:30', mapel:'Bahasa Indonesia', tutor:'Bu Sari', mode:'Live Zoom', paket:'C' },
+      { jam:'20:00–21:00', mapel:'Sejarah Indonesia', tutor:'Pak Joko', mode:'Rekaman', paket:'C' },
+    ]},
+    { hari:'Kamis', items:[
+      { jam:'19:00–20:00', mapel:'Ekonomi', tutor:'Bu Rini', mode:'Live Zoom', paket:'C' },
+    ]},
+    { hari:'Jumat', items:[
+      { jam:'19:00–20:00', mapel:'Sosiologi', tutor:'Pak Hadi', mode:'Diskusi Forum', paket:'C' },
+    ]},
+    { hari:'Sabtu', items:[
+      { jam:'09:00–11:00', mapel:'Tryout UNBK Bersama', tutor:'Tim Akademik', mode:'Live + Kuis', paket:'C' },
+    ]},
+    { hari:'Minggu', items:[
+      { jam:'Mandiri', mapel:'Belajar Mandiri & Konseling', tutor:'Wali Kelas', mode:'On-demand', paket:'Semua' },
+    ]},
+  ],
+  forum: [
+    { id:'f1', author:'Rahmat Hidayat', subject:'Matematika', tgl:'2026-04-23T08:30', judul:'Bingung dengan limit tak hingga',
+      isi:'Pak/Bu, mohon dijelaskan bedanya limit tak hingga dengan bentuk 0/0. Saya selalu kebalik kalau mengerjakan soal.', balasan:[
+        { author:'Pak Budi', tgl:'2026-04-23T09:10', isi:'Halo Rahmat. Limit tak hingga = nilai x mendekati ∞. Bentuk 0/0 muncul saat kita substitusi langsung dan hasilnya tak tentu — perlu difaktorkan. Coba latihan soal di materi M2 ya.' }
+      ]
+    },
+    { id:'f2', author:'Siti Nurhaliza', subject:'Bahasa Indonesia', tgl:'2026-04-21T20:14', judul:'Contoh teks editorial terbaru?',
+      isi:'Apakah ada contoh teks editorial dari koran nasional minggu ini sebagai latihan analisis?', balasan:[] },
+    { id:'f3', author:'Dewi Lestari', subject:'Umum', tgl:'2026-04-20T15:00', judul:'Tips belajar sambil bekerja',
+      isi:'Saya kerja shift malam dan agak susah ikut Zoom. Ada teman yang punya tips bagi waktu?', balasan:[
+        { author:'Bu Sari', tgl:'2026-04-20T16:22', isi:'Coba teknik Pomodoro 25–5. Materi rekaman bisa diputar saat istirahat. Kami juga sediakan jadwal akhir pekan ya.' }
+      ] },
+  ],
+  tugas: [
+    { id:'t1', subjectId:'c-mtk', title:'Latihan Soal Limit (PR Bab 1)', deadline:'2026-04-30', status:'belum' },
+    { id:'t2', subjectId:'c-bin', title:'Esai Argumentatif 500 kata', deadline:'2026-05-02', status:'progress' },
+    { id:'t3', subjectId:'c-eng', title:'Recording: Self Introduction', deadline:'2026-04-28', status:'submitted' },
+    { id:'t4', subjectId:'c-fis', title:'Laporan Praktik Newton', deadline:'2026-05-05', status:'belum' },
+  ],
+};
+
+/* ===== App state ===== */
+const App = {
+  user: null,
+  view: 'dashboard',
+  selectedRoleAtLogin: 'siswa',
+  quizSession: null,
+  searchQuery: '',
+  notifSeen: false,
+};
+
+/* ===== Auth ===== */
+function login(email, password, role){
+  const user = DATA.users.find(u => (u.email.toLowerCase()===email.toLowerCase()) && u.password===password && u.role===role);
+  if(!user) return { ok:false, error:'Email/sandi salah atau peran tidak cocok.' };
+  App.user = user;
+  Store.set('sk:auth', { id:user.id, role:user.role });
+  return { ok:true };
+}
+function logout(){
+  App.user = null;
+  Store.del('sk:auth');
+  showAuth();
+  toast('Anda telah keluar.', 'info');
+}
+function restoreSession(){
+  const a = Store.get('sk:auth');
+  if(!a) return false;
+  const user = DATA.users.find(u => u.id===a.id);
+  if(!user) return false;
+  App.user = user;
+  return true;
+}
+
+/* ===== Screens ===== */
+function showAuth(){
+  $('#auth-screen').hidden = false;
+  $('#app-screen').hidden = true;
+  document.title = 'Masuk — Sekolah Kesetaraan Online';
+}
+function showApp(){
+  $('#auth-screen').hidden = true;
+  $('#app-screen').hidden = false;
+  $('#avatar-initial').textContent = initials(App.user.name);
+  buildSidebar();
+  buildBottomNav();
+  navigate(location.hash.replace(/^#/,'') || 'dashboard');
+}
+
+/* ===== Navigation menus per role ===== */
+function menuFor(role){
+  const common = [
+    { id:'dashboard', label:'Beranda', ico:icoHome },
+    { id:'profil',    label:'Profil',  ico:icoUser },
+    { id:'pengumuman',label:'Pengumuman', ico:icoBell, count:DATA.pengumuman.length },
+  ];
+  if(role==='siswa'){
+    return [
+      common[0],
+      { id:'materi',   label:'Materi Belajar', ico:icoBook },
+      { id:'kuis',     label:'Kuis & Latihan', ico:icoQuiz },
+      { id:'tugas',    label:'Tugas Saya',     ico:icoCheck, count:DATA.tugas.filter(t=>t.status!=='submitted').length },
+      { id:'jadwal',   label:'Jadwal',         ico:icoCalendar },
+      { id:'progress', label:'Progress',       ico:icoChart },
+      { id:'forum',    label:'Forum Diskusi',  ico:icoChat },
+      { id:'unbk',     label:'Simulasi UNBK',  ico:icoTrophy },
+      { id:'sertifikat',label:'Sertifikat',    ico:icoAward },
+      { id:'konseling',label:'Konseling',      ico:icoHeart },
+      common[2], common[1],
+    ];
+  }
+  if(role==='guru'){
+    return [
+      common[0],
+      { id:'kelas',    label:'Kelas Saya', ico:icoUsers },
+      { id:'siswa',    label:'Siswa',      ico:icoUser },
+      { id:'materi-guru',label:'Kelola Materi', ico:icoBook },
+      { id:'kuis-guru',label:'Kelola Kuis & Soal', ico:icoQuiz },
+      { id:'nilai',    label:'Penilaian',  ico:icoCheck },
+      { id:'jadwal',   label:'Jadwal Mengajar', ico:icoCalendar },
+      { id:'forum',    label:'Forum Tanya Jawab', ico:icoChat },
+      { id:'pengumuman-guru',label:'Posting Pengumuman', ico:icoBell },
+      common[1],
+    ];
+  }
+  // admin
+  return [
+    common[0],
+    { id:'pengguna', label:'Manajemen Pengguna', ico:icoUsers },
+    { id:'paket',    label:'Manajemen Paket',   ico:icoLayers },
+    { id:'kurikulum',label:'Kurikulum',         ico:icoBook },
+    { id:'laporan',  label:'Laporan & Statistik', ico:icoChart },
+    { id:'pengumuman-guru',label:'Pengumuman Global', ico:icoBell },
+    { id:'pengaturan',label:'Pengaturan Sistem', ico:icoSettings },
+    common[1],
+  ];
+}
+
+/* SVG icons */
+function svg(d){ return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>` }
+const icoHome    = svg(`<path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/>`);
+const icoUser    = svg(`<circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/>`);
+const icoUsers   = svg(`<circle cx="9" cy="8" r="4"/><circle cx="17" cy="9" r="3"/><path d="M2 22c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M22 22c0-2.5-2.2-4.5-5-4.5"/>`);
+const icoBook    = svg(`<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M4 4v16"/>`);
+const icoQuiz    = svg(`<path d="M9 11h6"/><path d="M9 7h6"/><path d="M9 15h3"/><rect x="4" y="3" width="16" height="18" rx="2"/>`);
+const icoCalendar= svg(`<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/>`);
+const icoChart   = svg(`<line x1="3" y1="20" x2="21" y2="20"/><rect x="6" y="10" width="3" height="10"/><rect x="11" y="6" width="3" height="14"/><rect x="16" y="13" width="3" height="7"/>`);
+const icoChat    = svg(`<path d="M21 15a4 4 0 0 1-4 4H8l-5 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>`);
+const icoTrophy  = svg(`<path d="M8 21h8M12 17v4M5 4h14v4a7 7 0 0 1-14 0z"/><path d="M5 6H3v2a3 3 0 0 0 3 3M19 6h2v2a3 3 0 0 1-3 3"/>`);
+const icoAward   = svg(`<circle cx="12" cy="9" r="6"/><polyline points="8 14 7 22 12 19 17 22 16 14"/>`);
+const icoHeart   = svg(`<path d="M20 8.5a5.5 5.5 0 0 0-9.5-3.5 5.5 5.5 0 0 0-9.5 3.5C1 16 12 22 12 22s11-6 11-13.5z" transform="translate(-1 0) scale(.95)"/>`);
+const icoBell    = svg(`<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>`);
+const icoCheck   = svg(`<polyline points="20 6 9 17 4 12"/>`);
+const icoLayers  = svg(`<polygon points="12 2 22 8 12 14 2 8 12 2"/><polyline points="2 14 12 20 22 14"/>`);
+const icoSettings= svg(`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a8 8 0 0 0 .1-6l2-1.6-2-3.4-2.4.7a8 8 0 0 0-5.2-3l-.4-2.5h-3l-.4 2.5a8 8 0 0 0-5.2 3l-2.4-.7-2 3.4 2 1.6a8 8 0 0 0 .1 6l-2 1.6 2 3.4 2.4-.7a8 8 0 0 0 5.2 3l.4 2.5h3l.4-2.5a8 8 0 0 0 5.2-3l2.4.7 2-3.4z"/>`);
+
+/* ===== Build sidebar ===== */
+function buildSidebar(){
+  const items = menuFor(App.user.role);
+  $('#sidebar').innerHTML = `
+    <div class="nav-group">
+      <div class="label">Menu</div>
+      ${items.map(it => `
+        <button class="nav-item" data-view="${it.id}" aria-current="${App.view===it.id?'page':'false'}">
+          <span class="ico" aria-hidden="true">${it.ico}</span>
+          <span>${it.label}</span>
+          ${it.count?`<span class="count">${it.count}</span>`:''}
+        </button>`).join('')}
+    </div>
+    <div class="nav-group">
+      <div class="label">Akun</div>
+      <button class="nav-item" id="logout-side">
+        <span class="ico" aria-hidden="true">${svg(`<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>`)}</span>
+        <span>Keluar</span>
+      </button>
+    </div>
+  `;
+  $$('.nav-item[data-view]', $('#sidebar')).forEach(b => b.addEventListener('click', () => navigate(b.dataset.view)));
+  $('#logout-side').addEventListener('click', logout);
+}
+
+function buildBottomNav(){
+  const items = menuFor(App.user.role).slice(0,4);
+  items.push(menuFor(App.user.role).find(m=>m.id==='profil') || { id:'profil',label:'Profil',ico:icoUser });
+  $('#bottom-nav').innerHTML = items.map(it=>`
+    <button class="nav-item" data-view="${it.id}" aria-current="${App.view===it.id?'page':'false'}">
+      <span class="ico" aria-hidden="true">${it.ico}</span>
+      <span>${it.label.split(' ')[0]}</span>
+    </button>`).join('');
+  $$('.nav-item[data-view]', $('#bottom-nav')).forEach(b => b.addEventListener('click', () => navigate(b.dataset.view)));
+}
+
+/* ===== Router ===== */
+function navigate(view){
+  App.view = view;
+  history.replaceState(null,'','#'+view);
+  $$('.nav-item[data-view]').forEach(b => b.setAttribute('aria-current', b.dataset.view===view?'page':'false'));
+  const r = $('#view-root');
+  r.scrollIntoView({behavior:'instant',block:'start'});
+  $('#main-content').focus({preventScroll:true});
+  const role = App.user.role;
+  const map = {
+    siswa: {
+      dashboard: viewSiswaDashboard, materi: viewMateri, kuis: viewKuisList,
+      tugas: viewTugas, jadwal: viewJadwal, progress: viewProgress, forum: viewForum,
+      unbk: viewUNBK, sertifikat: viewSertifikat, konseling: viewKonseling,
+      pengumuman: viewPengumuman, profil: viewProfil,
+    },
+    guru: {
+      dashboard: viewGuruDashboard, kelas: viewGuruKelas, siswa: viewGuruSiswa,
+      'materi-guru': viewGuruMateri, 'kuis-guru': viewGuruKuis, nilai: viewGuruNilai,
+      jadwal: viewJadwal, forum: viewForum, 'pengumuman-guru': viewKelolaPengumuman,
+      profil: viewProfil, pengumuman: viewPengumuman,
+    },
+    admin: {
+      dashboard: viewAdminDashboard, pengguna: viewAdminPengguna, paket: viewAdminPaket,
+      kurikulum: viewAdminKurikulum, laporan: viewAdminLaporan,
+      'pengumuman-guru': viewKelolaPengumuman, pengaturan: viewAdminSetting,
+      profil: viewProfil, pengumuman: viewPengumuman,
+    },
+  };
+  const fn = (map[role] && map[role][view]) || viewNotFound;
+  r.innerHTML = fn();
+  bindViewActions();
+}
+
+/* ===== Views: SISWA ===== */
+function progressForUser(userId){
+  // compute simple progress per subject from materi.progress
+  const u = DATA.users.find(u=>u.id===userId);
+  const subjects = DATA.subjects[u.paket] || [];
+  return subjects.map(s => {
+    const ms = DATA.materi.filter(m => m.subjectId===s.id);
+    const avg = ms.length ? Math.round(ms.reduce((a,m)=>a+m.progress,0)/ms.length) : 0;
+    return { ...s, progress:avg };
+  });
+}
+
+function viewSiswaDashboard(){
+  const u = App.user;
+  const subj = progressForUser(u.id);
+  const overall = subj.length ? Math.round(subj.reduce((a,s)=>a+s.progress,0)/subj.length) : 0;
+  const pendingTugas = DATA.tugas.filter(t=>t.status!=='submitted').length;
+  const greet = (h => h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam')(new Date().getHours());
+  const recentMateri = DATA.materi
+    .filter(m => subj.some(s => s.id===m.subjectId))
+    .sort((a,b)=>b.progress-a.progress).slice(0,4);
+  const upNext = (DATA.jadwal[(new Date().getDay()+6)%7] || DATA.jadwal[0]).items[0];
+  return `
+    <div class="page-head">
+      <div>
+        <p class="muted" style="margin:0">${greet}, warga belajar 👋</p>
+        <h1>Halo, ${escapeHtml(u.name.split(' ')[0])}!</h1>
+        <p>${escapeHtml(u.kelas||'')} · Paket ${u.paket} · Bergabung ${fmtDate(u.joined)}</p>
+      </div>
+      <div class="row">
+        <span class="badge ok">${overall}% selesai</span>
+        <button class="btn primary" data-nav="materi">Lanjut belajar →</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:18px">
+      <div class="stat"><div class="v">${subj.length}</div><div class="l">Mata pelajaran</div><div class="delta up">+1 minggu ini</div></div>
+      <div class="stat"><div class="v">${DATA.materi.filter(m=>subj.some(s=>s.id===m.subjectId)).length}</div><div class="l">Materi tersedia</div><div class="delta up">↑ 12% bulan ini</div></div>
+      <div class="stat"><div class="v">${pendingTugas}</div><div class="l">Tugas belum selesai</div><div class="delta down">−1 dari minggu lalu</div></div>
+      <div class="stat"><div class="v">${overall}%</div><div class="l">Progres keseluruhan</div><div class="delta up">+8% bulan ini</div></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <div class="grid" style="grid-template-columns:1fr;gap:18px">
+        <section class="card" aria-labelledby="dh-cont">
+          <div class="row" style="justify-content:space-between">
+            <h3 id="dh-cont">Lanjutkan belajar</h3>
+            <button class="btn ghost sm" data-nav="materi">Lihat semua</button>
+          </div>
+          <div class="materi-list" style="margin-top:10px">
+            ${recentMateri.map(m => materiItem(m)).join('') || '<p class="muted">Belum ada materi.</p>'}
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="dh-mp">
+          <div class="row" style="justify-content:space-between">
+            <h3 id="dh-mp">Mata pelajaran kamu</h3>
+            <span class="muted">Paket ${u.paket}</span>
+          </div>
+          <div class="subjects" style="margin-top:10px">
+            ${subj.map(s => `
+              <button class="subject" data-subject="${s.id}">
+                <div class="ico" aria-hidden="true" style="background:${hexA(s.color,.15)};color:${s.color}">${s.icon}</div>
+                <h4>${escapeHtml(s.name)}</h4>
+                <div class="meta"><span>${s.materi} materi</span><span>${s.kuis} kuis</span></div>
+                <div class="progress"><div style="width:${s.progress}%"></div></div>
+                <div class="meta"><span>Progres</span><span>${s.progress}%</span></div>
+              </button>`).join('')}
+          </div>
+        </section>
+      </div>
+
+      <aside class="grid" style="grid-template-columns:1fr;gap:14px">
+        <section class="card">
+          <h3>Jadwal hari ini</h3>
+          <p class="muted" style="margin-top:0">Hari ${new Date().toLocaleDateString('id-ID',{weekday:'long'})}</p>
+          ${upNext ? `<div class="schedule-day" style="grid-template-columns:1fr;border:0;padding:0">
+            <div class="items">
+              <div class="item">
+                <span class="time">${escapeHtml(upNext.jam)}</span>
+                <span class="title"><b>${escapeHtml(upNext.mapel)}</b><br><small class="muted">${escapeHtml(upNext.tutor)} · ${escapeHtml(upNext.mode)}</small></span>
+                <button class="btn primary sm" data-nav="jadwal">Detail</button>
+              </div>
+            </div>
+          </div>`:'<p class="muted">Tidak ada jadwal terjadwal.</p>'}
+        </section>
+        <section class="card">
+          <h3>Pengumuman terbaru</h3>
+          ${DATA.pengumuman.slice(0,2).map(p => `
+            <div class="announce ${p.level==='warn'?'warn':p.level==='danger'?'danger':''}">
+              <time>${fmtDate(p.tgl)}</time>
+              <h5>${escapeHtml(p.judul)}</h5>
+              <p>${escapeHtml(p.isi)}</p>
+            </div>`).join('')}
+          <button class="btn block" data-nav="pengumuman">Lihat semua</button>
+        </section>
+        <section class="card">
+          <h3>Tips belajar</h3>
+          <p class="muted" style="margin:0 0 8px">Konsisten 30 menit per hari lebih efektif daripada 5 jam sekaligus.</p>
+          <div class="row">
+            <span class="badge ok">🔥 Streak: 7 hari</span>
+            <span class="badge info">⭐ XP: 1.240</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+  `;
+}
+
+function materiItem(m){
+  const s = findSubject(m.subjectId);
+  const tIcon = m.type==='video'
+    ? svg(`<polygon points="6 4 20 12 6 20 6 4"/>`)
+    : svg(`<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/>`);
+  return `
+    <article class="materi-item">
+      <div class="ico" aria-hidden="true">${tIcon}</div>
+      <div class="info">
+        <h5>${escapeHtml(m.title)}</h5>
+        <p>${escapeHtml(s?s.name:'')} · ${escapeHtml(m.durasi)} · ${m.type==='video'?'Video':'Bacaan'}</p>
+        <div class="progress" style="margin-top:6px"><div style="width:${m.progress}%"></div></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary sm" data-open-materi="${m.id}">Buka</button>
+        <button class="btn sm" data-download="${m.id}">Unduh</button>
+      </div>
+    </article>`;
+}
+
+function findSubject(id){
+  for(const k in DATA.subjects){
+    const s = DATA.subjects[k].find(x=>x.id===id);
+    if(s) return s;
+  }
+  return null;
+}
+
+function viewMateri(){
+  const u = App.user;
+  const subj = DATA.subjects[u.paket]||[];
+  const filterSubject = sessionStorage.getItem('filterSubject') || 'all';
+  const list = DATA.materi.filter(m => subj.some(s=>s.id===m.subjectId))
+    .filter(m => filterSubject==='all' || m.subjectId===filterSubject)
+    .filter(m => !App.searchQuery || m.title.toLowerCase().includes(App.searchQuery));
+  return `
+    <div class="page-head">
+      <div><h1>Materi Belajar</h1><p>Paket ${u.paket} · ${list.length} materi tersedia</p></div>
+      <div class="row">
+        <label class="row" style="gap:6px"><input type="checkbox" id="hemat-data" ${Store.get('sk:hematData')?'checked':''}/> Mode hemat data</label>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:14px">
+      <select class="select" id="filter-subject" style="max-width:280px" aria-label="Filter mata pelajaran">
+        <option value="all" ${filterSubject==='all'?'selected':''}>Semua mata pelajaran</option>
+        ${subj.map(s => `<option value="${s.id}" ${filterSubject===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
+      </select>
+      <input class="input" id="materi-search" type="search" placeholder="Cari materi…" style="max-width:280px"/>
+    </div>
+    <div class="materi-list">
+      ${list.map(materiItem).join('') || '<p class="muted">Tidak ada materi yang cocok.</p>'}
+    </div>
+  `;
+}
+
+function viewKuisList(){
+  const u = App.user;
+  const subj = DATA.subjects[u.paket]||[];
+  const list = DATA.kuis.filter(k => subj.some(s=>s.id===k.subjectId));
+  const riwayat = Store.get('sk:kuis:'+u.id, []);
+  return `
+    <div class="page-head">
+      <div><h1>Kuis & Latihan Soal</h1><p>${list.length} kuis siap dikerjakan</p></div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${list.map(k => {
+        const s = findSubject(k.subjectId);
+        const last = riwayat.find(r => r.kuisId===k.id);
+        return `
+          <article class="card">
+            <div class="row" style="justify-content:space-between">
+              <span class="badge">${escapeHtml(s?s.name:'')}</span>
+              <span class="muted" style="font-size:.82rem">⏱ ${k.durasiMenit} mnt</span>
+            </div>
+            <h3 style="margin-top:8px">${escapeHtml(k.title)}</h3>
+            <p class="muted" style="margin:4px 0">${k.soal.length} soal pilihan ganda</p>
+            ${last?`<p class="muted" style="margin:4px 0">Skor terakhir: <b>${last.score}/${last.total}</b> · ${fmtRel(last.tgl)}</p>`:''}
+            <button class="btn primary block" data-start-kuis="${k.id}" style="margin-top:10px">${last?'Ulangi':'Mulai kuis'}</button>
+          </article>`;
+      }).join('') || '<p class="muted">Belum ada kuis untuk paket Anda.</p>'}
+    </div>
+    ${riwayat.length?`
+      <h3 style="margin-top:24px">Riwayat kuis</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kuis</th><th>Skor</th><th>Tanggal</th></tr></thead>
+          <tbody>
+            ${riwayat.slice(-10).reverse().map(r=>{
+              const k = DATA.kuis.find(x=>x.id===r.kuisId);
+              return `<tr><td>${escapeHtml(k?k.title:'-')}</td><td>${r.score}/${r.total} (${Math.round(r.score/r.total*100)}%)</td><td>${fmtDate(r.tgl)}</td></tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`:''}
+  `;
+}
+
+function viewTugas(){
+  return `
+    <div class="page-head"><div><h1>Tugas Saya</h1><p>${DATA.tugas.length} tugas total</p></div></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${DATA.tugas.map(t=>{
+        const s = findSubject(t.subjectId);
+        const dl = new Date(t.deadline);
+        const days = Math.ceil((dl-Date.now())/86400000);
+        const overdue = days<0;
+        return `
+          <article class="card">
+            <span class="badge ${t.status==='submitted'?'ok':t.status==='progress'?'warn':overdue?'danger':''}">
+              ${t.status==='submitted'?'Sudah dikumpul':t.status==='progress'?'Sedang dikerjakan':overdue?'Terlambat':'Belum dikerjakan'}
+            </span>
+            <h3 style="margin:8px 0 4px">${escapeHtml(t.title)}</h3>
+            <p class="muted" style="margin:0">${escapeHtml(s?s.name:'')} · Tenggat ${fmtDate(t.deadline)} ${days>=0?`(${days} hari lagi)`:''}</p>
+            <div class="row" style="margin-top:10px">
+              ${t.status!=='submitted'?`<button class="btn primary sm" data-tugas-submit="${t.id}">Kumpulkan</button>`:''}
+              <button class="btn sm" data-tugas-detail="${t.id}">Detail</button>
+            </div>
+          </article>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function viewJadwal(){
+  return `
+    <div class="page-head"><div><h1>Jadwal Belajar</h1><p>Susunan kelas mingguan</p></div>
+      <button class="btn ghost" id="export-jadwal">⬇ Unduh ICS</button></div>
+    <div class="card">
+      ${DATA.jadwal.map(d=>`
+        <div class="schedule-day">
+          <div class="day">${d.hari}</div>
+          <div class="items">
+            ${d.items.map(it=>`
+              <div class="item">
+                <span class="time">${escapeHtml(it.jam)}</span>
+                <span class="title"><b>${escapeHtml(it.mapel)}</b><br><small class="muted">${escapeHtml(it.tutor)} · ${escapeHtml(it.mode)}</small></span>
+                <span class="badge">${escapeHtml(it.paket)}</span>
+              </div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+function viewProgress(){
+  const u = App.user;
+  const subj = progressForUser(u.id);
+  const overall = subj.length ? Math.round(subj.reduce((a,s)=>a+s.progress,0)/subj.length) : 0;
+  const riwayat = Store.get('sk:kuis:'+u.id, []);
+  const xp = 1240 + riwayat.reduce((a,r)=>a+r.score*10, 0);
+  return `
+    <div class="page-head"><div><h1>Progress Belajar</h1><p>Pantau kemajuanmu</p></div></div>
+    <div class="stats-grid" style="margin-bottom:18px">
+      <div class="stat"><div class="v">${overall}%</div><div class="l">Progres total</div></div>
+      <div class="stat"><div class="v">${xp.toLocaleString('id-ID')}</div><div class="l">XP terkumpul</div></div>
+      <div class="stat"><div class="v">7</div><div class="l">Hari berturut</div></div>
+      <div class="stat"><div class="v">${riwayat.length}</div><div class="l">Kuis dikerjakan</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <section class="card">
+        <h3>Progres per mata pelajaran</h3>
+        ${subj.map(s=>`
+          <div style="margin:10px 0">
+            <div class="row" style="justify-content:space-between"><b>${escapeHtml(s.name)}</b><span class="muted">${s.progress}%</span></div>
+            <div class="progress lg ${s.progress>=80?'success':s.progress<40?'danger':''}"><div style="width:${s.progress}%"></div></div>
+          </div>`).join('')}
+      </section>
+      <section class="card">
+        <h3>Aktivitas 7 hari terakhir</h3>
+        <div class="barchart" aria-label="Grafik aktivitas">
+          ${[3,5,2,7,4,6,8].map((v,i)=>`
+            <div class="bar"><div class="b" style="height:${v*10}%"></div><div class="v">${v}</div><div>${['Sen','Sel','Rab','Kam','Jum','Sab','Min'][i]}</div></div>`).join('')}
+        </div>
+        <p class="muted" style="margin-top:8px">Total: 35 sesi · rata-rata 5 sesi/hari</p>
+      </section>
+      <section class="card">
+        <h3>Lencana</h3>
+        <div class="row">
+          <span class="badge ok">🥇 Pemula Disiplin</span>
+          <span class="badge info">📚 Kutu Buku</span>
+          <span class="badge warn">🔥 7-Day Streak</span>
+          <span class="badge">🎯 Target Mingguan ✓</span>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function viewForum(){
+  return `
+    <div class="page-head">
+      <div><h1>Forum Diskusi</h1><p>Tanya jawab dengan tutor & sesama warga belajar</p></div>
+      <button class="btn primary" id="forum-new">+ Topik Baru</button>
+    </div>
+    <div>
+      ${DATA.forum.map(f=>`
+        <article class="forum-thread">
+          <div class="meta">
+            <div class="avatar" style="width:32px;height:32px;font-size:.78rem">${initials(f.author)}</div>
+            <b>${escapeHtml(f.author)}</b>
+            <span class="badge">${escapeHtml(f.subject)}</span>
+            <span>· ${fmtRel(f.tgl)}</span>
+          </div>
+          <h4 style="margin:4px 0">${escapeHtml(f.judul)}</h4>
+          <p style="margin:0">${escapeHtml(f.isi)}</p>
+          ${f.balasan.map(b=>`
+            <div class="reply">
+              <div class="avatar" style="width:32px;height:32px;font-size:.78rem;flex-shrink:0">${initials(b.author)}</div>
+              <div><div class="muted" style="font-size:.82rem"><b>${escapeHtml(b.author)}</b> · ${fmtRel(b.tgl)}</div>
+              <div>${escapeHtml(b.isi)}</div></div>
+            </div>`).join('')}
+          <div class="reply">
+            <div class="avatar" style="width:32px;height:32px;font-size:.78rem;flex-shrink:0">${initials(App.user.name)}</div>
+            <form data-forum-reply="${f.id}" style="display:flex;gap:6px;flex:1;flex-wrap:wrap">
+              <input class="input" name="msg" placeholder="Tulis balasan…" required aria-label="Balasan" style="flex:1;min-width:200px"/>
+              <button class="btn primary sm" type="submit">Kirim</button>
+            </form>
+          </div>
+        </article>`).join('')}
+    </div>
+  `;
+}
+
+function viewUNBK(){
+  return `
+    <div class="page-head"><div><h1>Simulasi UNBK</h1><p>Latihan ujian dengan tampilan & timer mirip ujian sungguhan.</p></div></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${DATA.kuis.map(k=>{
+        const s = findSubject(k.subjectId);
+        return `
+          <article class="card">
+            <span class="badge warn">Tryout</span>
+            <h3 style="margin:8px 0 4px">${escapeHtml(s?s.name:'')}</h3>
+            <p class="muted" style="margin:0">${k.soal.length} soal · ${k.durasiMenit} menit</p>
+            <button class="btn primary block" data-start-kuis="${k.id}" data-mode="unbk" style="margin-top:10px">Mulai Tryout</button>
+          </article>`;
+      }).join('')}
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>Tips menghadapi UNBK Kesetaraan</h3>
+      <ul>
+        <li>Persiapkan koneksi internet stabil & cadangan kuota.</li>
+        <li>Kerjakan soal yang mudah terlebih dahulu.</li>
+        <li>Manfaatkan tombol "Ragu" untuk menandai soal yang ingin direview.</li>
+        <li>Sisakan waktu 5 menit untuk memeriksa jawaban.</li>
+      </ul>
+    </div>
+  `;
+}
+
+function viewSertifikat(){
+  const u = App.user;
+  const subj = progressForUser(u.id);
+  const overall = subj.length ? Math.round(subj.reduce((a,s)=>a+s.progress,0)/subj.length) : 0;
+  const eligible = overall>=70;
+  return `
+    <div class="page-head"><div><h1>Sertifikat Digital</h1><p>Tersedia setelah progres ≥ 70%.</p></div></div>
+    <div class="card">
+      <p>Status kelayakan: ${eligible?`<span class="badge ok">Memenuhi syarat (${overall}%)</span>`:`<span class="badge warn">${overall}%, butuh ${70-overall}% lagi</span>`}</p>
+      ${eligible?`
+      <div class="cert" id="cert" role="img" aria-label="Sertifikat ${escapeHtml(u.name)}">
+        <div class="seal" aria-hidden="true">🏅</div>
+        <div style="font-size:.9rem;letter-spacing:3px">SERTIFIKAT PENYELESAIAN</div>
+        <h2>Sekolah Kesetaraan Online</h2>
+        <p>Diberikan kepada</p>
+        <div class="name">${escapeHtml(u.name)}</div>
+        <p>atas penyelesaian program <b>Paket ${u.paket}</b><br/>dengan capaian rata-rata <b>${overall}%</b>.</p>
+        <p style="margin-top:18px">Diterbitkan: ${fmtDate(new Date())}<br/>No. Sertifikat: SK-${u.id.toUpperCase()}-${Date.now().toString().slice(-6)}</p>
+        <p style="margin-top:18px;font-style:italic">Pusat Kegiatan Belajar Masyarakat (PKBM)</p>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" id="cert-print">🖨 Cetak / Simpan PDF</button>
+        <button class="btn" id="cert-share">🔗 Salin tautan verifikasi</button>
+      </div>`:`
+      <p>Tetap semangat! Selesaikan materi dan kuis hingga 70% untuk mendapatkan sertifikat.</p>
+      <button class="btn primary" data-nav="materi">Lanjut belajar</button>`}
+    </div>
+  `;
+}
+
+function viewKonseling(){
+  const log = Store.get('sk:chat:'+App.user.id, [
+    { from:'tutor', t: Date.now()-3600e3, m:'Halo! Saya Bu Sari, wali kelas Anda. Ada yang ingin didiskusikan?' }
+  ]);
+  return `
+    <div class="page-head"><div><h1>Konseling & Wali Kelas</h1><p>Curhat & konsultasi pribadi (anonim opsional).</p></div></div>
+    <div class="card">
+      <p class="muted" style="margin-top:0">Layanan ini tersedia 24/7 dengan tim konselor relawan. Untuk situasi darurat, hubungi 119 ext 8 (Halo Kemenkes).</p>
+      <div class="chat" id="chat-box">
+        ${log.map(m=>`<div class="msg ${m.from==='me'?'me':''}"><div>${escapeHtml(m.m)}</div><time>${new Date(m.t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join('')}
+      </div>
+      <form id="chat-form" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <input class="input" name="msg" placeholder="Tulis pesan untuk wali kelas…" required aria-label="Pesan" style="flex:1;min-width:200px"/>
+        <button class="btn primary" type="submit">Kirim</button>
+      </form>
+    </div>
+  `;
+}
+
+function viewPengumuman(){
+  return `
+    <div class="page-head"><div><h1>Pengumuman</h1><p>${DATA.pengumuman.length} pengumuman terbaru.</p></div></div>
+    <div>
+      ${DATA.pengumuman.map(p=>`
+        <article class="announce ${p.level==='warn'?'warn':p.level==='danger'?'danger':''}">
+          <time>${fmtDate(p.tgl)}</time>
+          <h5>${escapeHtml(p.judul)}</h5>
+          <p>${escapeHtml(p.isi)}</p>
+        </article>`).join('')}
+    </div>
+  `;
+}
+
+function viewProfil(){
+  const u = App.user;
+  return `
+    <div class="page-head"><div><h1>Profil Saya</h1><p>Kelola informasi akun</p></div></div>
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <section class="card">
+        <div class="row" style="gap:14px">
+          <div class="avatar" style="width:64px;height:64px;font-size:1.3rem">${initials(u.name)}</div>
+          <div>
+            <h3 style="margin:0">${escapeHtml(u.name)}</h3>
+            <p class="muted" style="margin:2px 0">${escapeHtml(u.email)}</p>
+            <span class="badge">${escapeHtml(u.role[0].toUpperCase()+u.role.slice(1))}</span>
+            ${u.paket?`<span class="badge info">Paket ${u.paket}</span>`:''}
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Data pribadi</h3>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+          <div class="field"><label>Nama lengkap</label><input class="input" value="${escapeHtml(u.name)}" id="p-name"/></div>
+          <div class="field"><label>Email</label><input class="input" value="${escapeHtml(u.email)}" id="p-email"/></div>
+          ${u.role==='siswa'?`
+            <div class="field"><label>Kota</label><input class="input" value="${escapeHtml(u.kota||'')}" id="p-kota"/></div>
+            <div class="field"><label>Usia</label><input class="input" type="number" value="${u.usia||''}" id="p-usia"/></div>
+            <div class="field"><label>Telepon</label><input class="input" value="${escapeHtml(u.telp||'')}" id="p-telp"/></div>`:''}
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn primary" id="p-save">Simpan perubahan</button>
+          <button class="btn" id="p-pwchange">Ubah kata sandi</button>
+          <button class="btn" id="p-export">⬇ Unduh data saya</button>
+          <button class="btn danger" id="p-logout">Keluar</button>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+/* ===== Views: GURU ===== */
+function viewGuruDashboard(){
+  const u = App.user;
+  const muridSaya = DATA.users.filter(x=>x.role==='siswa' && (u.paket||['A','B','C']).includes(x.paket));
+  return `
+    <div class="page-head">
+      <div><h1>Selamat datang, ${escapeHtml(u.name.split(' ')[0])}</h1><p>Mengajar ${(u.mapel||[]).join(', ')} · Paket ${(u.paket||[]).join(', ')}</p></div>
+      <button class="btn primary" data-nav="kuis-guru">+ Buat kuis baru</button>
+    </div>
+    <div class="stats-grid" style="margin-bottom:18px">
+      <div class="stat"><div class="v">${muridSaya.length}</div><div class="l">Total siswa</div></div>
+      <div class="stat"><div class="v">${(u.mapel||[]).length}</div><div class="l">Mata pelajaran</div></div>
+      <div class="stat"><div class="v">${DATA.tugas.length}</div><div class="l">Tugas terkumpul</div></div>
+      <div class="stat"><div class="v">87%</div><div class="l">Kehadiran kelas</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <section class="card">
+        <div class="row" style="justify-content:space-between"><h3>Tugas menunggu penilaian</h3><button class="btn ghost sm" data-nav="nilai">Lihat semua</button></div>
+        <div class="table-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr><th>Siswa</th><th>Tugas</th><th>Dikumpul</th><th></th></tr></thead>
+            <tbody>
+              ${DATA.tugas.slice(0,4).map((t,i)=>`
+                <tr>
+                  <td>${escapeHtml(muridSaya[i%muridSaya.length]?.name||'-')}</td>
+                  <td>${escapeHtml(t.title)}</td>
+                  <td>${fmtRel(t.deadline)}</td>
+                  <td><button class="btn primary sm" data-grade="${t.id}">Nilai</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Pengumuman aktif</h3>
+        ${DATA.pengumuman.slice(0,2).map(p=>`<div class="announce ${p.level}"><h5>${escapeHtml(p.judul)}</h5><p>${escapeHtml(p.isi)}</p></div>`).join('')}
+      </section>
+    </div>
+  `;
+}
+
+function viewGuruKelas(){
+  const u = App.user;
+  const paketAjar = u.paket || ['A','B','C'];
+  return `
+    <div class="page-head"><div><h1>Kelas Saya</h1><p>${paketAjar.length} paket aktif</p></div></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${paketAjar.map(p=>{
+        const meta = DATA.paket.find(x=>x.id===p);
+        const siswa = DATA.users.filter(x=>x.role==='siswa' && x.paket===p);
+        return `
+          <article class="card">
+            <span class="badge" style="background:${hexA(meta.color,.15)};color:${meta.color}">${meta.label}</span>
+            <h3 style="margin:8px 0 4px">${siswa.length} siswa</h3>
+            <p class="muted" style="margin:0">${escapeHtml(meta.desc)}</p>
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary sm" data-nav="siswa">Lihat siswa</button>
+              <button class="btn sm" data-nav="materi-guru">Materi</button>
+            </div>
+          </article>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function viewGuruSiswa(){
+  const list = DATA.users.filter(x=>x.role==='siswa');
+  return `
+    <div class="page-head"><div><h1>Daftar Siswa</h1><p>${list.length} siswa terdaftar</p></div>
+      <input class="input" id="siswa-search" placeholder="Cari siswa…" style="max-width:280px"/></div>
+    <div class="table-wrap">
+      <table id="siswa-table">
+        <thead><tr><th>Nama</th><th>Email</th><th>Paket</th><th>Kota</th><th>Bergabung</th><th></th></tr></thead>
+        <tbody>
+          ${list.map(s=>`<tr>
+            <td><div class="row" style="gap:8px"><div class="avatar" style="width:32px;height:32px;font-size:.78rem">${initials(s.name)}</div>${escapeHtml(s.name)}</div></td>
+            <td>${escapeHtml(s.email)}</td>
+            <td><span class="badge">Paket ${s.paket}</span></td>
+            <td>${escapeHtml(s.kota||'-')}</td>
+            <td>${fmtDate(s.joined)}</td>
+            <td><button class="btn sm" data-siswa-detail="${s.id}">Detail</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function viewGuruMateri(){
+  const u = App.user;
+  const subj = (u.paket||['C']).flatMap(p => DATA.subjects[p]||[]);
+  const list = DATA.materi.filter(m=>subj.some(s=>s.id===m.subjectId));
+  return `
+    <div class="page-head"><div><h1>Kelola Materi</h1><p>${list.length} materi diunggah</p></div>
+      <button class="btn primary" id="add-materi">+ Materi Baru</button></div>
+    <div class="materi-list">
+      ${list.map(m=>{
+        const s = findSubject(m.subjectId);
+        return `<article class="materi-item">
+          <div class="ico">📄</div>
+          <div class="info">
+            <h5>${escapeHtml(m.title)}</h5>
+            <p>${escapeHtml(s?s.name:'')} · ${m.type==='video'?'Video':'Bacaan'} · ${escapeHtml(m.durasi)}</p>
+          </div>
+          <div class="actions">
+            <button class="btn sm" data-edit-materi="${m.id}">Edit</button>
+            <button class="btn sm danger" data-del-materi="${m.id}">Hapus</button>
+          </div>
+        </article>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function viewGuruKuis(){
+  return `
+    <div class="page-head"><div><h1>Kelola Kuis & Soal</h1><p>${DATA.kuis.length} kuis aktif</p></div>
+      <button class="btn primary" id="add-kuis">+ Kuis Baru</button></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${DATA.kuis.map(k=>{
+        const s = findSubject(k.subjectId);
+        return `<article class="card">
+          <span class="badge">${escapeHtml(s?s.name:'')}</span>
+          <h3 style="margin:8px 0 4px">${escapeHtml(k.title)}</h3>
+          <p class="muted">${k.soal.length} soal · ${k.durasiMenit} menit</p>
+          <div class="row">
+            <button class="btn primary sm" data-edit-kuis="${k.id}">Edit soal</button>
+            <button class="btn sm" data-preview-kuis="${k.id}">Preview</button>
+          </div>
+        </article>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function viewGuruNilai(){
+  const list = DATA.users.filter(x=>x.role==='siswa');
+  return `
+    <div class="page-head"><div><h1>Penilaian</h1><p>Berikan nilai dan umpan balik</p></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Siswa</th><th>Paket</th><th>Tugas</th><th>Nilai (0-100)</th><th>Catatan</th><th></th></tr></thead>
+        <tbody>
+          ${list.flatMap(s => DATA.tugas.slice(0,2).map(t => `
+            <tr>
+              <td>${escapeHtml(s.name)}</td>
+              <td>Paket ${s.paket}</td>
+              <td>${escapeHtml(t.title)}</td>
+              <td><input class="input" type="number" min="0" max="100" placeholder="—" style="max-width:90px"/></td>
+              <td><input class="input" placeholder="Umpan balik singkat"/></td>
+              <td><button class="btn primary sm" data-save-nilai>Simpan</button></td>
+            </tr>`)).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function viewKelolaPengumuman(){
+  return `
+    <div class="page-head"><div><h1>Pengumuman</h1><p>Posting & kelola pengumuman</p></div></div>
+    <div class="card" style="margin-bottom:14px">
+      <h3>Buat pengumuman baru</h3>
+      <form id="ann-form" class="stack" style="margin-top:10px">
+        <div class="field"><label for="ann-title">Judul</label><input class="input" id="ann-title" required/></div>
+        <div class="field"><label for="ann-body">Isi</label><textarea class="textarea" id="ann-body" required></textarea></div>
+        <div class="row">
+          <select class="select" id="ann-level" style="max-width:200px"><option value="info">Info</option><option value="warn">Penting</option><option value="danger">Mendesak</option></select>
+          <button class="btn primary" type="submit">Posting</button>
+        </div>
+      </form>
+    </div>
+    <div id="ann-list">
+      ${DATA.pengumuman.map(p=>`
+        <article class="announce ${p.level==='warn'?'warn':p.level==='danger'?'danger':''}">
+          <time>${fmtDate(p.tgl)}</time>
+          <h5>${escapeHtml(p.judul)}</h5>
+          <p>${escapeHtml(p.isi)}</p>
+          <div class="row" style="margin-top:8px"><button class="btn sm danger" data-del-ann="${p.id}">Hapus</button></div>
+        </article>`).join('')}
+    </div>
+  `;
+}
+
+/* ===== Views: ADMIN ===== */
+function viewAdminDashboard(){
+  const totalSiswa = DATA.users.filter(u=>u.role==='siswa').length;
+  const totalGuru  = DATA.users.filter(u=>u.role==='guru').length;
+  const totalMateri = DATA.materi.length;
+  const totalKuis = DATA.kuis.length;
+  return `
+    <div class="page-head"><div><h1>Dashboard Admin</h1><p>Ringkasan platform</p></div></div>
+    <div class="stats-grid" style="margin-bottom:18px">
+      <div class="stat"><div class="v">${(1684).toLocaleString('id-ID')}</div><div class="l">Total siswa terdaftar</div><div class="delta up">+124 bulan ini</div></div>
+      <div class="stat"><div class="v">${totalGuru+22}</div><div class="l">Guru/Tutor aktif</div><div class="delta up">+3</div></div>
+      <div class="stat"><div class="v">${totalMateri+412}</div><div class="l">Materi tersedia</div><div class="delta up">+18</div></div>
+      <div class="stat"><div class="v">${totalKuis+86}</div><div class="l">Kuis terbit</div><div class="delta up">+5</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <section class="card">
+        <h3>Distribusi siswa per paket</h3>
+        <div class="barchart">
+          ${DATA.paket.map(p=>`
+            <div class="bar"><div class="b" style="height:${p.siswa/12}%;background:${p.color}"></div><div class="v">${p.siswa}</div><div>Paket ${p.id}</div></div>`).join('')}
+        </div>
+      </section>
+      <section class="card">
+        <h3>Aktivitas terbaru</h3>
+        <ul style="margin:0;padding-left:18px">
+          <li>15 menit lalu — <b>Siti Nurhaliza</b> menyelesaikan kuis Limit Fungsi (skor 4/5).</li>
+          <li>1 jam lalu — <b>Pak Budi</b> mengunggah materi <i>Turunan Fungsi</i>.</li>
+          <li>2 jam lalu — <b>Admin Utama</b> mempublikasikan pengumuman beasiswa LPDP.</li>
+          <li>Kemarin — <b>5 siswa baru</b> mendaftar Paket C.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Kesehatan sistem</h3>
+        <div class="row" style="gap:14px;flex-wrap:wrap">
+          <span class="badge ok">● Server: Sehat</span>
+          <span class="badge ok">● Database: 99.99%</span>
+          <span class="badge warn">● Penyimpanan: 78%</span>
+          <span class="badge ok">● API Eksternal: OK</span>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function viewAdminPengguna(){
+  const all = DATA.users;
+  return `
+    <div class="page-head"><div><h1>Manajemen Pengguna</h1><p>${all.length} akun terdaftar (data demo)</p></div>
+      <button class="btn primary" id="add-user">+ Tambah pengguna</button></div>
+    <div class="row" style="margin-bottom:10px">
+      <select class="select" id="filter-role" style="max-width:200px">
+        <option value="all">Semua peran</option><option>siswa</option><option>guru</option><option>admin</option>
+      </select>
+      <input class="input" id="search-user" placeholder="Cari nama atau email…" style="max-width:280px"/>
+    </div>
+    <div class="table-wrap">
+      <table id="user-table">
+        <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Paket</th><th>Bergabung</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${all.map(u=>`<tr>
+            <td>${escapeHtml(u.name)}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td><span class="badge ${u.role==='admin'?'danger':u.role==='guru'?'info':'ok'}">${u.role}</span></td>
+            <td>${u.paket?(Array.isArray(u.paket)?u.paket.join(', '):u.paket):'-'}</td>
+            <td>${fmtDate(u.joined||'2025-01-01')}</td>
+            <td><span class="badge ok">Aktif</span></td>
+            <td><button class="btn sm">Edit</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function viewAdminPaket(){
+  return `
+    <div class="page-head"><div><h1>Manajemen Paket</h1></div><button class="btn primary">+ Tambah Paket</button></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+      ${DATA.paket.map(p=>`
+        <article class="card" style="border-top:4px solid ${p.color}">
+          <h3>${escapeHtml(p.label)}</h3>
+          <p class="muted">${escapeHtml(p.desc)}</p>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr">
+            <div class="stat"><div class="v">${p.siswa}</div><div class="l">Siswa aktif</div></div>
+            <div class="stat"><div class="v">${(DATA.subjects[p.id]||[]).length}</div><div class="l">Mata pelajaran</div></div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn sm">Atur kurikulum</button>
+            <button class="btn sm">Lihat siswa</button>
+          </div>
+        </article>`).join('')}
+    </div>
+  `;
+}
+
+function viewAdminKurikulum(){
+  return `
+    <div class="page-head"><div><h1>Kurikulum</h1><p>Atur mata pelajaran per paket</p></div></div>
+    ${DATA.paket.map(p=>`
+      <details class="card" ${p.id==='C'?'open':''}>
+        <summary><b>${escapeHtml(p.label)}</b> — ${(DATA.subjects[p.id]||[]).length} mapel</summary>
+        <div class="materi-list" style="margin-top:8px">
+          ${(DATA.subjects[p.id]||[]).map(s=>`
+            <div class="materi-item">
+              <div class="ico" style="background:${hexA(s.color,.15)};color:${s.color}">${s.icon}</div>
+              <div class="info"><h5>${escapeHtml(s.name)}</h5><p>${s.materi} materi · ${s.kuis} kuis</p></div>
+              <div class="actions"><button class="btn sm">Edit</button></div>
+            </div>`).join('')}
+        </div>
+      </details>`).join('')}
+  `;
+}
+
+function viewAdminLaporan(){
+  return `
+    <div class="page-head"><div><h1>Laporan & Statistik</h1></div>
+      <button class="btn" id="export-laporan">⬇ Ekspor CSV</button></div>
+    <div class="card" style="margin-bottom:14px">
+      <h3>Pertumbuhan siswa (12 bulan)</h3>
+      <div class="barchart">
+        ${[80,95,110,125,140,160,180,200,225,260,300,340].map((v,i)=>`
+          <div class="bar"><div class="b" style="height:${v/4}%"></div><div class="v">${v}</div><div>${['Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des','Jan','Feb','Mar','Apr'][i]}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Top 5 mata pelajaran terpopuler</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Mata pelajaran</th><th>Paket</th><th>Pengakses</th><th>Rata-rata skor</th></tr></thead>
+        <tbody>
+          <tr><td>Matematika</td><td>C</td><td>892</td><td>78</td></tr>
+          <tr><td>Bahasa Indonesia</td><td>C</td><td>740</td><td>82</td></tr>
+          <tr><td>Bahasa Inggris</td><td>C</td><td>612</td><td>71</td></tr>
+          <tr><td>TIK & Literasi Digital</td><td>B</td><td>388</td><td>85</td></tr>
+          <tr><td>Sejarah Indonesia</td><td>C</td><td>340</td><td>76</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+function viewAdminSetting(){
+  return `
+    <div class="page-head"><div><h1>Pengaturan Sistem</h1></div></div>
+    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+      <section class="card">
+        <h3>Informasi platform</h3>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+          <div class="field"><label>Nama platform</label><input class="input" value="Sekolah Kesetaraan Online"/></div>
+          <div class="field"><label>Email kontak</label><input class="input" value="halo@kesetaraan.id"/></div>
+          <div class="field"><label>Tahun ajaran</label><input class="input" value="2025/2026"/></div>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Pendaftaran</h3>
+        <label class="row"><input type="checkbox" checked/> Pendaftaran terbuka untuk umum</label>
+        <label class="row" style="margin-top:6px"><input type="checkbox"/> Wajib verifikasi NIK Dukcapil</label>
+        <label class="row" style="margin-top:6px"><input type="checkbox" checked/> Kirim notifikasi WhatsApp</label>
+      </section>
+      <section class="card">
+        <h3>Backup & Keamanan</h3>
+        <p class="muted">Backup otomatis terakhir: ${fmtDate(new Date())} 03:00 WIB.</p>
+        <div class="row"><button class="btn">Backup sekarang</button><button class="btn">Audit login</button><button class="btn danger">Reset cache</button></div>
+      </section>
+    </div>
+  `;
+}
+
+function viewNotFound(){
+  return `<div class="card"><h2>Halaman tidak ditemukan</h2><p>Silakan kembali ke beranda.</p><button class="btn primary" data-nav="dashboard">Ke beranda</button></div>`;
+}
+
+/* ===== View action binding ===== */
+function bindViewActions(){
+  $$('[data-nav]').forEach(b=>b.addEventListener('click', e=>navigate(e.currentTarget.dataset.nav)));
+  $$('[data-subject]').forEach(b=>b.addEventListener('click', e=>{
+    sessionStorage.setItem('filterSubject', e.currentTarget.dataset.subject);
+    navigate('materi');
+  }));
+  $$('[data-open-materi]').forEach(b=>b.addEventListener('click', e=>openMateri(e.currentTarget.dataset.openMateri)));
+  $$('[data-download]').forEach(b=>b.addEventListener('click', ()=>toast('Materi tersimpan untuk akses offline.','success')));
+  $$('[data-start-kuis]').forEach(b=>b.addEventListener('click', e=>startKuis(e.currentTarget.dataset.startKuis, e.currentTarget.dataset.mode)));
+  $$('[data-tugas-submit]').forEach(b=>b.addEventListener('click', e=>{
+    const t = DATA.tugas.find(x=>x.id===e.currentTarget.dataset.tugasSubmit);
+    if(t){ t.status='submitted'; toast('Tugas berhasil dikumpulkan!','success'); navigate('tugas'); }
+  }));
+  $$('[data-tugas-detail]').forEach(b=>b.addEventListener('click', e=>{
+    const t = DATA.tugas.find(x=>x.id===e.currentTarget.dataset.tugasDetail);
+    openModal(t.title, `<p class="muted">Tenggat ${fmtDate(t.deadline)}</p><p>Detail tugas akan ditampilkan di sini, lengkap dengan deskripsi, lampiran, dan rubrik penilaian.</p>`);
+  }));
+
+  // Materi page filters
+  const fs = $('#filter-subject'); if(fs) fs.addEventListener('change', e=>{ sessionStorage.setItem('filterSubject', e.target.value); navigate('materi') });
+  const ms = $('#materi-search'); if(ms) ms.addEventListener('input', e=>{ App.searchQuery = e.target.value.toLowerCase(); navigate('materi') });
+
+  // Hemat data
+  const hd = $('#hemat-data'); if(hd) hd.addEventListener('change', e=>{ Store.set('sk:hematData', e.target.checked); toast(e.target.checked?'Mode hemat data aktif.':'Mode hemat data dimatikan.','info'); });
+
+  // Forum
+  $$('[data-forum-reply]').forEach(f=>f.addEventListener('submit', e=>{
+    e.preventDefault();
+    const msg = e.target.msg.value.trim(); if(!msg) return;
+    const f2 = DATA.forum.find(x=>x.id===e.target.dataset.forumReply);
+    if(f2){ f2.balasan.push({author:App.user.name, tgl:new Date().toISOString(), isi:msg}); toast('Balasan terkirim','success'); navigate('forum'); }
+  }));
+  const fb = $('#forum-new'); if(fb) fb.addEventListener('click', ()=>{
+    openModal('Topik diskusi baru', `
+      <form id="new-thread" class="stack">
+        <div class="field"><label>Judul</label><input class="input" name="judul" required/></div>
+        <div class="field"><label>Mata pelajaran</label>
+          <select class="select" name="subject">${['Umum','Matematika','Bahasa Indonesia','Bahasa Inggris','IPA','IPS'].map(x=>`<option>${x}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>Isi pertanyaan</label><textarea class="textarea" name="isi" required></textarea></div>
+        <button type="submit" class="btn primary">Posting</button>
+      </form>`);
+    $('#new-thread').addEventListener('submit', e=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      DATA.forum.unshift({ id:'f'+Date.now(), author:App.user.name, subject:fd.get('subject'), tgl:new Date().toISOString(), judul:fd.get('judul'), isi:fd.get('isi'), balasan:[] });
+      closeModal(); toast('Topik dibuat','success'); navigate('forum');
+    });
+  });
+
+  // Konseling chat
+  const cf = $('#chat-form'); if(cf){
+    cf.addEventListener('submit', e=>{
+      e.preventDefault();
+      const m = e.target.msg.value.trim(); if(!m) return;
+      const log = Store.get('sk:chat:'+App.user.id, []);
+      log.push({from:'me', t:Date.now(), m});
+      Store.set('sk:chat:'+App.user.id, log);
+      e.target.msg.value='';
+      navigate('konseling');
+      setTimeout(()=>{
+        const replies = ['Terima kasih sudah berbagi. Bagaimana perasaanmu sekarang?','Saya mengerti. Mari kita cari solusinya bersama.','Tetap semangat ya! Saya akan menjadwalkan sesi 1-on-1.','Bagus, kamu sudah berani bercerita. Itu langkah besar.'];
+        const log2 = Store.get('sk:chat:'+App.user.id, []);
+        log2.push({from:'tutor', t:Date.now(), m:replies[Math.floor(Math.random()*replies.length)]});
+        Store.set('sk:chat:'+App.user.id, log2);
+        if(App.view==='konseling') navigate('konseling');
+      }, 900);
+    });
+  }
+
+  // Profile
+  const ps = $('#p-save'); if(ps) ps.addEventListener('click', ()=>{
+    App.user.name = $('#p-name').value || App.user.name;
+    App.user.email = $('#p-email').value || App.user.email;
+    if($('#p-kota')) App.user.kota = $('#p-kota').value;
+    if($('#p-usia')) App.user.usia = +$('#p-usia').value;
+    if($('#p-telp')) App.user.telp = $('#p-telp').value;
+    $('#avatar-initial').textContent = initials(App.user.name);
+    toast('Profil diperbarui','success');
+  });
+  const pl = $('#p-logout'); if(pl) pl.addEventListener('click', logout);
+  const pe = $('#p-export'); if(pe) pe.addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(App.user,null,2)],{type:'application/json'});
+    downloadBlob(blob, 'data-saya.json');
+  });
+  const pw = $('#p-pwchange'); if(pw) pw.addEventListener('click', ()=>{
+    openModal('Ubah kata sandi', `
+      <form id="pw-form" class="stack">
+        <div class="field"><label>Kata sandi lama</label><input class="input" type="password" required/></div>
+        <div class="field"><label>Kata sandi baru</label><input class="input" type="password" minlength="8" required/></div>
+        <div class="field"><label>Konfirmasi</label><input class="input" type="password" required/></div>
+        <button class="btn primary" type="submit">Simpan</button>
+      </form>`);
+    $('#pw-form').addEventListener('submit', e=>{e.preventDefault(); closeModal(); toast('Kata sandi berhasil diubah','success')});
+  });
+
+  // Sertifikat
+  const cp = $('#cert-print'); if(cp) cp.addEventListener('click', ()=>window.print());
+  const cs = $('#cert-share'); if(cs) cs.addEventListener('click', async ()=>{
+    const link = `${location.origin}${location.pathname}#cert/${App.user.id}`;
+    try{ await navigator.clipboard.writeText(link); toast('Tautan disalin: '+link,'success') }catch(e){ toast(link,'info') }
+  });
+
+  // Pengumuman post
+  const af = $('#ann-form'); if(af) af.addEventListener('submit', e=>{
+    e.preventDefault();
+    DATA.pengumuman.unshift({
+      id:'p'+Date.now(), tgl:new Date().toISOString().slice(0,10),
+      judul:$('#ann-title').value, isi:$('#ann-body').value, level:$('#ann-level').value
+    });
+    toast('Pengumuman diposting','success');
+    navigate(App.view);
+  });
+  $$('[data-del-ann]').forEach(b=>b.addEventListener('click', e=>{
+    const id = e.currentTarget.dataset.delAnn;
+    DATA.pengumuman = DATA.pengumuman.filter(p=>p.id!==id);
+    toast('Pengumuman dihapus','info'); navigate(App.view);
+  }));
+
+  // Search siswa table
+  const ss = $('#siswa-search'); if(ss) ss.addEventListener('input', e=>filterTable('siswa-table', e.target.value));
+  const su = $('#search-user'); if(su) su.addEventListener('input', e=>filterTable('user-table', e.target.value));
+  const fr = $('#filter-role'); if(fr) fr.addEventListener('change', e=>filterTable('user-table', e.target.value==='all'?'':e.target.value));
+
+  // Guru materi
+  const am = $('#add-materi'); if(am) am.addEventListener('click', ()=>{
+    openModal('Materi baru', `
+      <form id="m-form" class="stack">
+        <div class="field"><label>Judul</label><input class="input" name="title" required/></div>
+        <div class="field"><label>Tipe</label><select class="select" name="type"><option value="reading">Bacaan</option><option value="video">Video</option></select></div>
+        <div class="field"><label>Durasi</label><input class="input" name="durasi" placeholder="cth: 15 menit" required/></div>
+        <div class="field"><label>Mata pelajaran</label>
+          <select class="select" name="subjectId" required>
+            ${(App.user.paket||['C']).flatMap(p=>DATA.subjects[p]||[]).map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')}
+          </select></div>
+        <div class="field"><label>Konten</label><textarea class="textarea" name="konten" required></textarea></div>
+        <button class="btn primary" type="submit">Simpan</button>
+      </form>`);
+    $('#m-form').addEventListener('submit', e=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      DATA.materi.push({id:'m'+Date.now(), title:fd.get('title'), type:fd.get('type'), durasi:fd.get('durasi'),
+        subjectId:fd.get('subjectId'), konten:fd.get('konten'), desc:fd.get('konten').slice(0,80), progress:0});
+      closeModal(); toast('Materi ditambahkan','success'); navigate('materi-guru');
+    });
+  });
+  $$('[data-del-materi]').forEach(b=>b.addEventListener('click', e=>{
+    const id = e.currentTarget.dataset.delMateri;
+    if(confirm('Hapus materi ini?')){ DATA.materi = DATA.materi.filter(m=>m.id!==id); toast('Materi dihapus','info'); navigate('materi-guru'); }
+  }));
+
+  // Export ICS
+  const ex = $('#export-jadwal'); if(ex) ex.addEventListener('click', exportJadwalICS);
+  const exL = $('#export-laporan'); if(exL) exL.addEventListener('click', exportLaporanCSV);
+}
+
+function openMateri(id){
+  const m = DATA.materi.find(x=>x.id===id);
+  if(!m) return;
+  const s = findSubject(m.subjectId);
+  const hemat = Store.get('sk:hematData');
+  openModal(m.title, `
+    <p class="muted" style="margin-top:0">${escapeHtml(s?s.name:'')} · ${escapeHtml(m.durasi)} · ${m.type==='video'?'Video':'Bacaan'}</p>
+    ${m.type==='video' && !hemat ? `<div style="aspect-ratio:16/9;background:#000;color:#fff;border-radius:12px;display:grid;place-items:center;font-size:1rem">▶ Pemutar video (simulasi)</div>` : ''}
+    <div style="white-space:pre-wrap;line-height:1.7;margin-top:12px">${escapeHtml(m.konten)}</div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="m-done">Tandai selesai</button>
+      <button class="btn" id="m-bookmark">⭐ Tandai</button>
+      <button class="btn" id="m-tts">🔊 Baca keras</button>
+    </div>`);
+  $('#m-done').addEventListener('click', ()=>{ m.progress=100; closeModal(); toast('Materi diselesaikan! +20 XP','success'); navigate(App.view); });
+  $('#m-bookmark').addEventListener('click', ()=>toast('Materi ditandai','success'));
+  $('#m-tts').addEventListener('click', ()=>{
+    if(!('speechSynthesis' in window)) return toast('Browser tidak mendukung TTS','error');
+    const utt = new SpeechSynthesisUtterance(m.konten);
+    utt.lang='id-ID'; utt.rate=1; speechSynthesis.cancel(); speechSynthesis.speak(utt);
+    toast('Membaca materi…','info');
+  });
+}
+
+/* ===== Quiz engine ===== */
+function startKuis(id, mode='normal'){
+  const k = DATA.kuis.find(x=>x.id===id); if(!k) return;
+  App.quizSession = { kuis:k, idx:0, answers:Array(k.soal.length).fill(null), startTs:Date.now(), durasi:k.durasiMenit*60, mode };
+  renderQuiz();
+}
+function renderQuiz(){
+  const s = App.quizSession; const k = s.kuis; const q = k.soal[s.idx];
+  const elapsed = Math.floor((Date.now()-s.startTs)/1000);
+  const remain = Math.max(0, s.durasi - elapsed);
+  const r = $('#view-root');
+  r.innerHTML = `
+    <div class="page-head">
+      <div><h1>${escapeHtml(k.title)}</h1>
+        <p>Soal ${s.idx+1} dari ${k.soal.length} ${s.mode==='unbk'?'· Mode UNBK':''}</p></div>
+      <div class="quiz-timer ${remain<60?'danger':''}" aria-live="polite">⏱ ${pad(Math.floor(remain/60))}:${pad(remain%60)}</div>
+    </div>
+    <div class="progress" style="margin-bottom:14px"><div style="width:${(s.idx+1)/k.soal.length*100}%"></div></div>
+    <div class="quiz-card">
+      <div class="quiz-meta"><span>Pilihan ganda</span><span>${s.answers.filter(x=>x!=null).length}/${k.soal.length} dijawab</span></div>
+      <div class="quiz-q">${escapeHtml(q.q)}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,i)=>`
+          <button class="quiz-opt" data-opt="${i}" aria-pressed="${s.answers[s.idx]===i?'true':'false'}">
+            <span class="marker">${String.fromCharCode(65+i)}</span><span>${escapeHtml(o)}</span>
+          </button>`).join('')}
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:18px">
+        <button class="btn" id="q-prev" ${s.idx===0?'disabled':''}>← Sebelumnya</button>
+        <div class="row">
+          <button class="btn ghost" id="q-flag">⚑ Ragu</button>
+          ${s.idx<k.soal.length-1
+            ?'<button class="btn primary" id="q-next">Selanjutnya →</button>'
+            :'<button class="btn primary" id="q-finish">Selesaikan kuis</button>'}
+        </div>
+      </div>
+      <hr/>
+      <details>
+        <summary>Navigasi soal</summary>
+        <div class="row" style="margin-top:8px;flex-wrap:wrap">
+          ${k.soal.map((_,i)=>`<button class="btn sm ${s.answers[i]!=null?'primary':''}" data-jump="${i}">${i+1}</button>`).join('')}
+        </div>
+      </details>
+    </div>
+  `;
+  $$('.quiz-opt').forEach(b=>b.addEventListener('click', e=>{
+    const i = +e.currentTarget.dataset.opt; s.answers[s.idx] = i;
+    $$('.quiz-opt').forEach(x=>x.setAttribute('aria-pressed', x===e.currentTarget?'true':'false'));
+  }));
+  $('#q-prev')?.addEventListener('click', ()=>{ s.idx--; renderQuiz() });
+  $('#q-next')?.addEventListener('click', ()=>{ s.idx++; renderQuiz() });
+  $('#q-finish')?.addEventListener('click', finishQuiz);
+  $('#q-flag')?.addEventListener('click', ()=>toast('Soal ditandai untuk direview','info'));
+  $$('[data-jump]').forEach(b=>b.addEventListener('click', e=>{ s.idx = +e.currentTarget.dataset.jump; renderQuiz() }));
+
+  // tick timer
+  if(window._quizTimer) clearInterval(window._quizTimer);
+  window._quizTimer = setInterval(()=>{
+    if(App.view!=='kuis' && App.view!=='unbk' && App.view!=='dashboard'){ /* keep ticking only on quiz screen */ }
+    if(!App.quizSession){ clearInterval(window._quizTimer); return; }
+    const el = $('.quiz-timer'); if(!el) { clearInterval(window._quizTimer); return; }
+    const left = Math.max(0, App.quizSession.durasi - Math.floor((Date.now()-App.quizSession.startTs)/1000));
+    el.textContent = `⏱ ${pad(Math.floor(left/60))}:${pad(left%60)}`;
+    el.classList.toggle('danger', left<60);
+    if(left===0){ finishQuiz(true); }
+  },1000);
+}
+function pad(n){ return String(n).padStart(2,'0') }
+function finishQuiz(timeUp=false){
+  if(window._quizTimer) clearInterval(window._quizTimer);
+  const s = App.quizSession; if(!s) return;
+  const score = s.answers.reduce((a,ans,i)=>a + (ans===s.kuis.soal[i].a?1:0), 0);
+  const total = s.kuis.soal.length;
+  const pct = Math.round(score/total*100);
+  const riwayat = Store.get('sk:kuis:'+App.user.id, []);
+  riwayat.push({ kuisId:s.kuis.id, score, total, tgl:new Date().toISOString() });
+  Store.set('sk:kuis:'+App.user.id, riwayat);
+  const r = $('#view-root');
+  r.innerHTML = `
+    <div class="page-head"><div><h1>Hasil: ${escapeHtml(s.kuis.title)}</h1>${timeUp?'<p class="badge warn">Waktu habis</p>':''}</div></div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:3rem">${pct>=80?'🏆':pct>=60?'👍':'💪'}</div>
+      <h2 style="margin:6px 0">${score}/${total} <span class="muted" style="font-size:1rem">(${pct}%)</span></h2>
+      <p class="muted">${pct>=80?'Hebat! Pertahankan.':pct>=60?'Lumayan, ayo lebih baik lagi!':'Jangan menyerah, baca ulang materi dan coba lagi.'}</p>
+      <div class="row" style="justify-content:center;margin-top:14px">
+        <button class="btn primary" data-start-kuis="${s.kuis.id}">Coba lagi</button>
+        <button class="btn" data-nav="kuis">Kuis lain</button>
+        <button class="btn ghost" data-nav="materi">Lanjut belajar</button>
+      </div>
+    </div>
+    <h3 style="margin-top:18px">Pembahasan</h3>
+    <div class="stack">
+      ${s.kuis.soal.map((q,i)=>`
+        <div class="card">
+          <div class="quiz-meta"><span>Soal ${i+1}</span><span class="badge ${s.answers[i]===q.a?'ok':'danger'}">${s.answers[i]===q.a?'Benar':'Salah'}</span></div>
+          <div class="quiz-q">${escapeHtml(q.q)}</div>
+          <div class="quiz-options">
+            ${q.opts.map((o,j)=>`
+              <div class="quiz-opt ${j===q.a?'correct':j===s.answers[i]&&j!==q.a?'wrong':''}">
+                <span class="marker">${String.fromCharCode(65+j)}</span><span>${escapeHtml(o)}</span>
+              </div>`).join('')}
+          </div>
+          <p class="muted" style="margin-top:10px"><b>Pembahasan:</b> ${escapeHtml(q.expl)}</p>
+        </div>`).join('')}
+    </div>
+  `;
+  bindViewActions();
+  App.quizSession = null;
+}
+
+/* ===== Helpers ===== */
+function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function downloadBlob(blob, name){ const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }
+function filterTable(id, q){
+  const tb = $('#'+id+' tbody'); if(!tb) return;
+  const ql = q.toLowerCase();
+  $$('tr', tb).forEach(tr => { tr.style.display = tr.textContent.toLowerCase().includes(ql)?'':'none' });
+}
+function exportJadwalICS(){
+  let ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//SekolahKesetaraan//ID\n";
+  DATA.jadwal.forEach((d,i)=>d.items.forEach((it,j)=>{
+    const today = new Date(); today.setDate(today.getDate() + ((i + 1 - today.getDay() + 7) % 7));
+    const ds = today.toISOString().replace(/[-:]/g,'').slice(0,8);
+    ics += `BEGIN:VEVENT\nUID:${i}-${j}@kesetaraan.id\nDTSTART:${ds}T180000\nDTEND:${ds}T200000\nSUMMARY:${it.mapel} (${it.tutor})\nDESCRIPTION:${it.mode}\nEND:VEVENT\n`;
+  }));
+  ics += "END:VCALENDAR";
+  downloadBlob(new Blob([ics],{type:'text/calendar'}),'jadwal-kesetaraan.ics');
+  toast('Jadwal diunduh sebagai ICS','success');
+}
+function exportLaporanCSV(){
+  const rows = [['Mata Pelajaran','Paket','Pengakses','Rata-rata Skor']];
+  rows.push(['Matematika','C',892,78],['Bahasa Indonesia','C',740,82],['Bahasa Inggris','C',612,71]);
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  downloadBlob(new Blob([csv],{type:'text/csv'}),'laporan.csv');
+  toast('Laporan diunduh','success');
+}
+
+/* ===== Login form binding ===== */
+function bindAuth(){
+  // Role select
+  $$('.role-card').forEach(b => b.addEventListener('click', () => {
+    $$('.role-card').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    App.selectedRoleAtLogin = b.dataset.role;
+    // Pre-fill demo email
+    const map = {siswa:'siti@kesetaraan.id',guru:'budi@kesetaraan.id',admin:'admin@kesetaraan.id'};
+    $('#login-email').value = map[App.selectedRoleAtLogin];
+    $('#login-password').value = 'demo123';
+  }));
+  // pre-select default
+  $('#login-email').value = 'siti@kesetaraan.id';
+  $('#login-password').value = 'demo123';
+
+  $('#toggle-pw').addEventListener('click', () => {
+    const p = $('#login-password');
+    p.type = p.type==='password' ? 'text' : 'password';
+  });
+
+  $('#login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = $('#login-email').value.trim();
+    const pw = $('#login-password').value;
+    if(!email || !pw){ return toast('Lengkapi email dan kata sandi','error') }
+    const res = login(email, pw, App.selectedRoleAtLogin);
+    if(!res.ok) return toast(res.error,'error');
+    toast(`Selamat datang, ${App.user.name.split(' ')[0]}!`,'success');
+    showApp();
+  });
+  $('#demo-login').addEventListener('click', () => {
+    $('#login-form').requestSubmit();
+  });
+  $('#forgot-pw').addEventListener('click', e => {
+    e.preventDefault();
+    openModal('Lupa kata sandi', `<p>Kirim tautan reset ke email Anda. (Demo)</p>
+      <form id="fp-form" class="stack"><div class="field"><label>Email terdaftar</label><input class="input" type="email" required value="${$('#login-email').value}"/></div>
+      <button class="btn primary" type="submit">Kirim tautan</button></form>`);
+    $('#fp-form').addEventListener('submit', ev=>{ ev.preventDefault(); closeModal(); toast('Tautan reset terkirim ke email','success') });
+  });
+  $('#register-link').addEventListener('click', e => {
+    e.preventDefault();
+    openModal('Daftar akun warga belajar baru', `
+      <form id="reg-form" class="stack">
+        <div class="field"><label>Nama lengkap</label><input class="input" name="name" required/></div>
+        <div class="field"><label>Email</label><input class="input" name="email" type="email" required/></div>
+        <div class="field"><label>NIK</label><input class="input" name="nik" pattern="\\d{16}" required maxlength="16" inputmode="numeric"/><span class="hint">16 digit angka</span></div>
+        <div class="field"><label>Pilih paket</label>
+          <select class="select" name="paket" required>
+            ${DATA.paket.map(p=>`<option value="${p.id}">${escapeHtml(p.label)}</option>`).join('')}
+          </select></div>
+        <div class="field"><label>Kata sandi</label><input class="input" name="pw" type="password" minlength="8" required/></div>
+        <button class="btn primary" type="submit">Daftar</button>
+      </form>
+      <p class="muted" style="margin-top:8px;font-size:.82rem">Dengan mendaftar, Anda menyetujui kebijakan privasi & syarat ketentuan platform.</p>`);
+    $('#reg-form').addEventListener('submit', ev => {
+      ev.preventDefault();
+      const fd = new FormData(ev.target);
+      const u = { id:'u'+Date.now(), name:fd.get('name'), email:fd.get('email'), password:fd.get('pw'), role:'siswa', paket:fd.get('paket'), kelas:'-', usia:18, kota:'-', joined:new Date().toISOString().slice(0,10), avatar:initials(fd.get('name')) };
+      DATA.users.push(u); closeModal(); toast('Akun terdaftar! Silakan masuk.','success');
+      $('#login-email').value = u.email; $('#login-password').value = u.password;
+    });
+  });
+}
+
+/* ===== Top bar interactions ===== */
+function bindTopBar(){
+  $('#menu-btn').addEventListener('click', () => {
+    const sb = $('#sidebar');
+    const open = sb.style.display === 'block';
+    sb.style.display = open ? '' : 'block';
+    $('#menu-btn').setAttribute('aria-expanded', !open);
+  });
+  $('#theme-btn').addEventListener('click', () => {
+    const cur = document.body.dataset.theme;
+    document.body.dataset.theme = cur==='dark' ? 'light' : 'dark';
+    Store.set('sk:theme', document.body.dataset.theme);
+  });
+  $('#acc-btn').addEventListener('click', () => {
+    openModal('Pengaturan Aksesibilitas', `
+      <div class="stack">
+        <div class="field">
+          <label>Ukuran teks</label>
+          <div class="row">
+            <button class="btn sm" data-fs="md">A</button>
+            <button class="btn sm" data-fs="lg">A+</button>
+            <button class="btn sm" data-fs="xl">A++</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Kontras</label>
+          <div class="row">
+            <button class="btn sm" data-ct="normal">Normal</button>
+            <button class="btn sm" data-ct="high">Kontras Tinggi</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Bahasa antarmuka</label>
+          <select class="select" id="lang-sel" disabled>
+            <option>Bahasa Indonesia</option>
+            <option>Basa Jawa (segera)</option>
+            <option>Basa Sunda (segera)</option>
+            <option>English (coming soon)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="row" style="gap:6px"><input type="checkbox" id="rm-toggle" ${Store.get('sk:reduceMotion')?'checked':''}/> Kurangi animasi</label>
+        </div>
+      </div>`);
+    $$('[data-fs]').forEach(b=>b.addEventListener('click', e=>{ document.body.dataset.fontsize = e.currentTarget.dataset.fs; Store.set('sk:fs', e.currentTarget.dataset.fs); toast('Ukuran teks diperbarui','success'); }));
+    $$('[data-ct]').forEach(b=>b.addEventListener('click', e=>{ document.body.dataset.contrast = e.currentTarget.dataset.ct; Store.set('sk:ct', e.currentTarget.dataset.ct); toast('Kontras diperbarui','success'); }));
+    $('#rm-toggle').addEventListener('change', e=>{
+      Store.set('sk:reduceMotion', e.target.checked);
+      document.documentElement.style.setProperty('--anim', e.target.checked?'0.001ms':'');
+    });
+  });
+  $('#notif-btn').addEventListener('click', () => {
+    openModal('Notifikasi', `
+      <div class="stack">
+        <div class="announce"><time>${fmtRel(Date.now()-1800e3)}</time><h5>Tugas baru: Esai Argumentatif</h5><p>Bu Sari memberikan tugas baru di mapel Bahasa Indonesia.</p></div>
+        <div class="announce warn"><time>${fmtRel(Date.now()-86400e3)}</time><h5>Pengingat: UAS dimulai 12 Mei</h5><p>Persiapkan dokumen identitas dan koneksi internet.</p></div>
+        <div class="announce ok"><time>${fmtRel(Date.now()-2*86400e3)}</time><h5>Selamat! Lencana baru</h5><p>Anda mendapatkan lencana 🔥 7-day streak.</p></div>
+      </div>`);
+    $('#notif-btn').querySelector('.dot')?.remove();
+  });
+  $('#profile-btn').addEventListener('click', () => navigate('profil'));
+  $('#global-search').addEventListener('input', e => {
+    App.searchQuery = e.target.value.toLowerCase();
+    if(App.view==='materi') navigate('materi');
+  });
+}
+
+/* ===== Modal & global ===== */
+function bindGlobals(){
+  $('#modal-close').addEventListener('click', closeModal);
+  $('#modal').addEventListener('click', e => { if(e.target.id==='modal') closeModal() });
+  document.addEventListener('keydown', e => {
+    if(e.key==='Escape'){ if(!$('#modal').hidden) closeModal() }
+  });
+  // restore prefs
+  const t = Store.get('sk:theme'); if(t) document.body.dataset.theme = t;
+  const fs = Store.get('sk:fs'); if(fs) document.body.dataset.fontsize = fs;
+  const ct = Store.get('sk:ct'); if(ct) document.body.dataset.contrast = ct;
+  // online/offline indicator
+  window.addEventListener('offline', ()=>toast('Anda offline. Materi yang sudah diunduh tetap dapat diakses.','info'));
+  window.addEventListener('online', ()=>toast('Koneksi pulih','success'));
+  // hash routing
+  window.addEventListener('hashchange', () => {
+    if(!App.user) return;
+    const v = location.hash.replace(/^#/,'');
+    if(v && v!==App.view) navigate(v);
+  });
+}
+
+/* ===== Boot ===== */
+function boot(){
+  bindAuth();
+  bindGlobals();
+  if(restoreSession()){
+    bindTopBar();
+    showApp();
+  }else{
+    showAuth();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Bind topbar at boot too — in case session is restored later we'll also rebind
+  boot();
+  // Always bind top bar listeners (idempotent: app shell only visible after login)
+  if(App.user){ /* already bound by showApp via boot */ }
+  else {
+    // Bind once app screen becomes visible: just bind eagerly so re-login works
+    bindTopBar();
+  }
+});
+</script>
+</body>
+</html>
