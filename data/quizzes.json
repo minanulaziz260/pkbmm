@@ -1,0 +1,245 @@
+[
+  {
+    "id": "q1",
+    "slug": "matematika-dasar",
+    "title": "Kuis Matematika - Fungsi & Turunan",
+    "subject": "Matematika",
+    "description": "5 soal pilihan ganda untuk menguji pemahamanmu tentang fungsi dan turunan.",
+    "timeLimit": 10,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q1-1",
+        "question": "Jika f(x) = 2x + 3, berapakah nilai f(4)?",
+        "options": ["9", "11", "8", "14"],
+        "correctIndex": 1,
+        "explanation": "f(4) = 2(4) + 3 = 8 + 3 = 11"
+      },
+      {
+        "id": "q1-2",
+        "question": "Turunan dari f(x) = x³ adalah...",
+        "options": ["3x", "3x²", "x²", "x³"],
+        "correctIndex": 1,
+        "explanation": "Aturan turunan: f(x) = x^n => f'(x) = n·x^(n-1), sehingga f'(x) = 3x²."
+      },
+      {
+        "id": "q1-3",
+        "question": "Domain dari fungsi f(x) = 1/(x-2) adalah...",
+        "options": ["Semua bilangan real", "x ≠ 0", "x ≠ 2", "x > 2"],
+        "correctIndex": 2,
+        "explanation": "Penyebut tidak boleh nol, sehingga x - 2 ≠ 0, artinya x ≠ 2."
+      },
+      {
+        "id": "q1-4",
+        "question": "Limit dari (x² - 4)/(x - 2) saat x mendekati 2 adalah...",
+        "options": ["0", "2", "4", "Tidak terdefinisi"],
+        "correctIndex": 2,
+        "explanation": "(x²-4)/(x-2) = (x+2)(x-2)/(x-2) = x+2. Saat x→2, nilainya = 4."
+      },
+      {
+        "id": "q1-5",
+        "question": "Turunan dari f(x) = 5x² + 3x - 7 adalah...",
+        "options": ["10x + 3", "5x + 3", "10x - 7", "10x² + 3"],
+        "correctIndex": 0,
+        "explanation": "f'(x) = 10x + 3 (konstanta -7 turunannya 0)."
+      }
+    ]
+  },
+  {
+    "id": "q2",
+    "slug": "bahasa-indonesia-dasar",
+    "title": "Kuis Bahasa Indonesia - Teks & Puisi",
+    "subject": "Bahasa Indonesia",
+    "description": "Uji pemahamanmu tentang struktur teks dan analisis puisi.",
+    "timeLimit": 8,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q2-1",
+        "question": "Struktur teks eksposisi yang benar adalah...",
+        "options": [
+          "Tesis - Argumentasi - Penegasan Ulang",
+          "Orientasi - Komplikasi - Resolusi",
+          "Pembukaan - Isi - Penutup",
+          "Judul - Isi - Kesimpulan"
+        ],
+        "correctIndex": 0,
+        "explanation": "Teks eksposisi memiliki struktur: Tesis - Argumentasi - Penegasan Ulang."
+      },
+      {
+        "id": "q2-2",
+        "question": "Unsur intrinsik puisi yang menggambarkan pilihan kata adalah...",
+        "options": ["Tema", "Rima", "Diksi", "Amanat"],
+        "correctIndex": 2,
+        "explanation": "Diksi adalah pilihan kata yang digunakan penyair untuk menyampaikan makna."
+      },
+      {
+        "id": "q2-3",
+        "question": "Kalimat fakta ditandai dengan...",
+        "options": [
+          "Pendapat pribadi penulis",
+          "Data atau informasi yang dapat dibuktikan",
+          "Ajakan kepada pembaca",
+          "Kata-kata kiasan"
+        ],
+        "correctIndex": 1,
+        "explanation": "Kalimat fakta berisi informasi yang dapat dibuktikan kebenarannya."
+      },
+      {
+        "id": "q2-4",
+        "question": "Sinonim dari kata 'pandai' adalah...",
+        "options": ["Bodoh", "Cerdas", "Malas", "Lamban"],
+        "correctIndex": 1,
+        "explanation": "Sinonim pandai adalah cerdas."
+      }
+    ]
+  },
+  {
+    "id": "q3",
+    "slug": "bahasa-inggris-dasar",
+    "title": "Kuis Bahasa Inggris - Grammar",
+    "subject": "Bahasa Inggris",
+    "description": "Test your grammar and reading skills.",
+    "timeLimit": 8,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q3-1",
+        "question": "She ___ to school every day.",
+        "options": ["go", "goes", "going", "gone"],
+        "correctIndex": 1,
+        "explanation": "Subjek orang ketiga tunggal (she/he/it) + verb-s/es: goes."
+      },
+      {
+        "id": "q3-2",
+        "question": "I ___ my homework yesterday.",
+        "options": ["finish", "finishes", "finished", "finishing"],
+        "correctIndex": 2,
+        "explanation": "'Yesterday' menandakan past tense, gunakan bentuk ke-2: finished."
+      },
+      {
+        "id": "q3-3",
+        "question": "They ___ been studying since morning.",
+        "options": ["has", "have", "is", "are"],
+        "correctIndex": 1,
+        "explanation": "Subjek jamak (they) + present perfect continuous: have been + V-ing."
+      }
+    ]
+  },
+  {
+    "id": "q4",
+    "slug": "ipa-dasar",
+    "title": "Kuis IPA - Fisika & Biologi",
+    "subject": "IPA",
+    "description": "Menguji pemahaman dasar IPA Paket C.",
+    "timeLimit": 8,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q4-1",
+        "question": "Rumus Hukum II Newton adalah...",
+        "options": ["F = m·v", "F = m·a", "F = m/a", "F = a/m"],
+        "correctIndex": 1,
+        "explanation": "Hukum II Newton: F (gaya) = m (massa) × a (percepatan)."
+      },
+      {
+        "id": "q4-2",
+        "question": "Organ yang berfungsi menyerap sari-sari makanan adalah...",
+        "options": ["Lambung", "Usus halus", "Usus besar", "Hati"],
+        "correctIndex": 1,
+        "explanation": "Usus halus memiliki vili yang memperluas permukaan penyerapan."
+      },
+      {
+        "id": "q4-3",
+        "question": "Simbol kimia untuk air adalah...",
+        "options": ["HO₂", "H₂O", "O₂H", "OH"],
+        "correctIndex": 1,
+        "explanation": "Molekul air terdiri dari 2 atom hidrogen dan 1 atom oksigen: H₂O."
+      }
+    ]
+  },
+  {
+    "id": "q5",
+    "slug": "ips-dasar",
+    "title": "Kuis IPS - Ekonomi & Sejarah",
+    "subject": "IPS",
+    "description": "Uji pemahaman dasar IPS.",
+    "timeLimit": 8,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q5-1",
+        "question": "PDB adalah singkatan dari...",
+        "options": [
+          "Produk Dalam Bangsa",
+          "Produk Domestik Bruto",
+          "Pendapatan Dasar Bangsa",
+          "Pendapatan Domestik Bersih"
+        ],
+        "correctIndex": 1,
+        "explanation": "PDB = Produk Domestik Bruto, nilai pasar semua barang dan jasa yang diproduksi dalam suatu negara."
+      },
+      {
+        "id": "q5-2",
+        "question": "Proklamasi Kemerdekaan Indonesia dibacakan pada tanggal...",
+        "options": ["17 Agustus 1945", "1 Juni 1945", "28 Oktober 1928", "20 Mei 1908"],
+        "correctIndex": 0,
+        "explanation": "Proklamasi Kemerdekaan dibacakan oleh Soekarno-Hatta pada 17 Agustus 1945."
+      },
+      {
+        "id": "q5-3",
+        "question": "Faktor utama pendorong urbanisasi adalah...",
+        "options": [
+          "Ketersediaan lapangan kerja di kota",
+          "Biaya hidup yang lebih murah",
+          "Udara yang lebih bersih",
+          "Lingkungan yang tenang"
+        ],
+        "correctIndex": 0,
+        "explanation": "Ketersediaan lapangan pekerjaan di kota menjadi faktor tarik urbanisasi."
+      }
+    ]
+  },
+  {
+    "id": "q6",
+    "slug": "ppkn-dasar",
+    "title": "Kuis PPKn - Pancasila",
+    "subject": "PPKn",
+    "description": "Uji pemahaman tentang Pancasila dan kewarganegaraan.",
+    "timeLimit": 6,
+    "passingScore": 70,
+    "questions": [
+      {
+        "id": "q6-1",
+        "question": "Sila ke-3 Pancasila berbunyi...",
+        "options": [
+          "Ketuhanan Yang Maha Esa",
+          "Kemanusiaan yang adil dan beradab",
+          "Persatuan Indonesia",
+          "Keadilan sosial bagi seluruh rakyat Indonesia"
+        ],
+        "correctIndex": 2,
+        "explanation": "Sila ke-3: Persatuan Indonesia."
+      },
+      {
+        "id": "q6-2",
+        "question": "Kewajiban warga negara yang diatur dalam UUD 1945 adalah...",
+        "options": [
+          "Mendapat pendidikan",
+          "Membayar pajak",
+          "Berpendapat",
+          "Bekerja"
+        ],
+        "correctIndex": 1,
+        "explanation": "Membayar pajak adalah kewajiban warga negara."
+      },
+      {
+        "id": "q6-3",
+        "question": "Bentuk negara Indonesia adalah...",
+        "options": ["Serikat", "Kesatuan", "Federal", "Monarki"],
+        "correctIndex": 1,
+        "explanation": "Indonesia adalah Negara Kesatuan Republik Indonesia (NKRI)."
+      }
+    ]
+  }
+]
