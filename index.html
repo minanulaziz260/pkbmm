@@ -1014,26 +1014,26 @@ function menuFor(role){
   if(role==='guru'){
     return [
       common[0],
-      { id:'kelas',    label:'Kelas Saya', ico:icoUsers },
+      { id:'kelas',    label:'Kelas Saya', short:'Kelas', ico:icoUsers },
       { id:'siswa',    label:'Siswa',      ico:icoUser },
-      { id:'materi-guru',label:'Kelola Materi', ico:icoBook },
-      { id:'kuis-guru',label:'Kelola Kuis & Soal', ico:icoQuiz },
+      { id:'materi-guru',label:'Kelola Materi', short:'Materi', ico:icoBook },
+      { id:'kuis-guru',label:'Kelola Kuis & Soal', short:'Kuis', ico:icoQuiz },
       { id:'nilai',    label:'Penilaian',  ico:icoCheck },
-      { id:'jadwal',   label:'Jadwal Mengajar', ico:icoCalendar },
-      { id:'forum',    label:'Forum Tanya Jawab', ico:icoChat },
-      { id:'pengumuman-guru',label:'Posting Pengumuman', ico:icoBell },
+      { id:'jadwal',   label:'Jadwal Mengajar', short:'Jadwal', ico:icoCalendar },
+      { id:'forum',    label:'Forum Tanya Jawab', short:'Forum', ico:icoChat },
+      { id:'pengumuman-guru',label:'Posting Pengumuman', short:'Posting', ico:icoBell },
       common[1],
     ];
   }
   // admin
   return [
     common[0],
-    { id:'pengguna', label:'Manajemen Pengguna', ico:icoUsers },
-    { id:'paket',    label:'Manajemen Paket',   ico:icoLayers },
-    { id:'kurikulum',label:'Kurikulum',         ico:icoBook },
-    { id:'laporan',  label:'Laporan & Statistik', ico:icoChart },
-    { id:'pengumuman-guru',label:'Pengumuman Global', ico:icoBell },
-    { id:'pengaturan',label:'Pengaturan Sistem', ico:icoSettings },
+    { id:'pengguna', label:'Manajemen Pengguna', short:'Pengguna', ico:icoUsers },
+    { id:'paket',    label:'Manajemen Paket',    short:'Paket',    ico:icoLayers },
+    { id:'kurikulum',label:'Kurikulum',          ico:icoBook },
+    { id:'laporan',  label:'Laporan & Statistik', short:'Laporan', ico:icoChart },
+    { id:'pengumuman-guru',label:'Pengumuman Global', short:'Pengumuman', ico:icoBell },
+    { id:'pengaturan',label:'Pengaturan Sistem', short:'Pengaturan', ico:icoSettings },
     common[1],
   ];
 }
@@ -1087,7 +1087,7 @@ function buildBottomNav(){
   $('#bottom-nav').innerHTML = items.map(it=>`
     <button class="nav-item" data-view="${it.id}" aria-current="${App.view===it.id?'page':'false'}">
       <span class="ico" aria-hidden="true">${it.ico}</span>
-      <span>${it.label.split(' ')[0]}</span>
+      <span>${escapeHtml(it.short || it.label.split(' ')[0])}</span>
     </button>`).join('');
   $$('.nav-item[data-view]', $('#bottom-nav')).forEach(b => b.addEventListener('click', () => navigate(b.dataset.view)));
 }
