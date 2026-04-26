@@ -632,7 +632,7 @@
       </fieldset>
       <div class="field">
         <label for="login-email">Email atau NIS</label>
-        <input id="login-email" name="email" class="input" type="text" autocomplete="username" required placeholder="contoh: siti@mugisae.id" />
+        <input id="login-email" name="email" class="input" type="text" autocomplete="username" required placeholder="email atau NIS" />
       </div>
       <div class="field" style="margin-top:10px">
         <label for="login-password">Kata sandi</label>
@@ -651,14 +651,9 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         Masuk ke akun saya
       </button>
-      <button class="btn block" type="button" id="demo-login" style="margin-top:8px">Masuk cepat sebagai demo</button>
-      <div class="demo-list" aria-label="Akun demo">
-        <div><b>Akun demo</b> — semua kata sandi: <code>demo123</code></div>
-        <div>Siswa: <code>siti@mugisae.id</code> · Guru: <code>budi@mugisae.id</code> · Admin: <code>admin@mugisae.id</code></div>
-      </div>
       <div class="footer-links">
-        <a href="#" id="register-link">Belum punya akun? Daftar</a>
-        <span class="muted">v1.0 · 100% offline-ready</span>
+        <span class="muted">PKBM MUGI SAE · v1.0</span>
+        <span class="muted">Akun didaftarkan oleh admin sekolah</span>
       </div>
     </form>
   </div>
@@ -948,10 +943,34 @@ const App = {
   notifSeen: false,
 };
 
+/* ===== Persisted users (registered by admin) =====
+ * DATA.users on initial load contains seed/built-in accounts (admin + a few siswa/guru).
+ * Admin-registered students are stored separately in localStorage under 'sk:users:custom'
+ * and merged into DATA.users at boot. Mutations go through saveCustomUsers().
+ */
+function loadCustomUsers(){
+  const arr = Store.get('sk:users:custom');
+  if(Array.isArray(arr)){
+    arr.forEach(u => {
+      if(!DATA.users.some(x => x.id===u.id || x.email.toLowerCase()===u.email.toLowerCase())){
+        DATA.users.push(u);
+      }
+    });
+  }
+}
+function saveCustomUsers(){
+  const seedIds = new Set(DATA._seedUserIds || []);
+  const custom = DATA.users.filter(u => !seedIds.has(u.id));
+  Store.set('sk:users:custom', custom);
+}
+
 /* ===== Auth ===== */
-function login(email, password, role){
-  const user = DATA.users.find(u => (u.email.toLowerCase()===email.toLowerCase()) && u.password===password && u.role===role);
-  if(!user) return { ok:false, error:'Email/sandi salah atau peran tidak cocok.' };
+function login(emailOrNis, password, role){
+  const q = (emailOrNis||'').trim().toLowerCase();
+  const user = DATA.users.find(u =>
+    ((u.email||'').toLowerCase()===q || (u.nis||'').toLowerCase()===q) &&
+    u.password===password && u.role===role);
+  if(!user) return { ok:false, error:'Email/NIS atau sandi salah, atau peran tidak cocok.' };
   App.user = user;
   Store.set('sk:auth', { id:user.id, role:user.role });
   return { ok:true };
@@ -1818,10 +1837,12 @@ function viewAdminDashboard(){
 
 function viewAdminPengguna(){
   const all = DATA.users;
+  const seedIds = new Set(DATA._seedUserIds || []);
+  const totalSiswa = all.filter(u=>u.role==='siswa').length;
   return `
-    <div class="page-head"><div><h1>Manajemen Pengguna</h1><p>${all.length} akun terdaftar (data demo)</p></div>
-      <button class="btn primary" id="add-user">+ Tambah pengguna</button></div>
-    <div class="row" style="margin-bottom:10px">
+    <div class="page-head"><div><h1>Manajemen Pengguna</h1><p>${all.length} akun terdaftar · ${totalSiswa} siswa</p></div>
+      <button class="btn primary" id="add-siswa">+ Tambah Siswa</button></div>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <select class="select" id="filter-role" style="max-width:200px">
         <option value="all">Semua peran</option><option>siswa</option><option>guru</option><option>admin</option>
       </select>
@@ -1829,17 +1850,20 @@ function viewAdminPengguna(){
     </div>
     <div class="table-wrap">
       <table id="user-table">
-        <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Paket</th><th>Bergabung</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Nama</th><th>Email / NIS</th><th>Peran</th><th>Paket</th><th>Bergabung</th><th>Status</th><th>Aksi</th></tr></thead>
         <tbody>
-          ${all.map(u=>`<tr>
+          ${all.map(u=>{
+            const isCustom = !seedIds.has(u.id);
+            return `<tr>
             <td>${escapeHtml(u.name)}</td>
-            <td>${escapeHtml(u.email)}</td>
+            <td>${escapeHtml(u.email)}${u.nis?`<br><small class="muted">NIS: ${escapeHtml(u.nis)}</small>`:''}</td>
             <td><span class="badge ${u.role==='admin'?'danger':u.role==='guru'?'info':'ok'}">${u.role}</span></td>
             <td>${u.paket?(Array.isArray(u.paket)?u.paket.join(', '):u.paket):'-'}</td>
             <td>${fmtDate(u.joined||'2025-01-01')}</td>
-            <td><span class="badge ok">Aktif</span></td>
-            <td><button class="btn sm">Edit</button></td>
-          </tr>`).join('')}
+            <td><span class="badge ok">Aktif</span>${isCustom?' <span class="badge info">Baru</span>':''}</td>
+            <td>${isCustom?`<button class="btn sm danger" data-del-user="${escapeHtml(u.id)}">Hapus</button>`:'<span class="muted" style="font-size:.82rem">Bawaan</span>'}</td>
+          </tr>`;
+          }).join('')}
         </tbody>
       </table>
     </div>
@@ -2068,6 +2092,22 @@ function bindViewActions(){
   const su = $('#search-user'); if(su) su.addEventListener('input', e=>filterTable('user-table', e.target.value));
   const fr = $('#filter-role'); if(fr) fr.addEventListener('change', e=>filterTable('user-table', e.target.value==='all'?'':e.target.value));
 
+  // Admin: tambah siswa baru
+  const addSiswaBtn = $('#add-siswa');
+  if(addSiswaBtn) addSiswaBtn.addEventListener('click', () => openAddSiswaModal());
+
+  // Admin: hapus siswa custom
+  $$('[data-del-user]').forEach(b => b.addEventListener('click', e => {
+    const uid = e.currentTarget.dataset.delUser;
+    const u = DATA.users.find(x => x.id===uid);
+    if(!u) return;
+    if(!confirm(`Hapus akun "${u.name}" (${u.email})? Tindakan ini tidak bisa dibatalkan.`)) return;
+    DATA.users = DATA.users.filter(x => x.id!==uid);
+    saveCustomUsers();
+    toast(`Akun ${u.name} dihapus`,'info');
+    navigate(App.view);
+  }));
+
   // Guru materi
   const am = $('#add-materi'); if(am) am.addEventListener('click', ()=>{
     openModal('Materi baru', `
@@ -2290,14 +2330,7 @@ function bindAuth(){
     $$('.role-card').forEach(x=>x.setAttribute('aria-pressed','false'));
     b.setAttribute('aria-pressed','true');
     App.selectedRoleAtLogin = b.dataset.role;
-    // Pre-fill demo email
-    const map = {siswa:'siti@mugisae.id',guru:'budi@mugisae.id',admin:'admin@mugisae.id'};
-    $('#login-email').value = map[App.selectedRoleAtLogin];
-    $('#login-password').value = 'demo123';
   }));
-  // pre-select default
-  $('#login-email').value = 'siti@mugisae.id';
-  $('#login-password').value = 'demo123';
 
   $('#toggle-pw').addEventListener('click', () => {
     const p = $('#login-password');
@@ -2314,9 +2347,6 @@ function bindAuth(){
     toast(`Selamat datang, ${App.user.name.split(' ')[0]}!`,'success');
     showApp();
   });
-  $('#demo-login').addEventListener('click', () => {
-    $('#login-form').requestSubmit();
-  });
   $('#forgot-pw').addEventListener('click', e => {
     e.preventDefault();
     openModal('Lupa kata sandi', `<p>Kirim tautan reset ke email Anda. (Demo)</p>
@@ -2324,29 +2354,114 @@ function bindAuth(){
       <button class="btn primary" type="submit">Kirim tautan</button></form>`);
     $('#fp-form').addEventListener('submit', ev=>{ ev.preventDefault(); closeModal(); toast('Tautan reset terkirim ke email','success') });
   });
-  $('#register-link').addEventListener('click', e => {
-    e.preventDefault();
-    openModal('Daftar akun warga belajar baru', `
-      <form id="reg-form" class="stack">
-        <div class="field"><label>Nama lengkap</label><input class="input" name="name" required/></div>
-        <div class="field"><label>Email</label><input class="input" name="email" type="email" required/></div>
-        <div class="field"><label>NIK</label><input class="input" name="nik" pattern="\\d{16}" required maxlength="16" inputmode="numeric"/><span class="hint">16 digit angka</span></div>
-        <div class="field"><label>Pilih paket</label>
-          <select class="select" name="paket" required>
-            ${DATA.paket.map(p=>`<option value="${p.id}">${escapeHtml(p.label)}</option>`).join('')}
+}
+
+/* ===== Admin: Add Siswa modal ===== */
+function generateNIS(){
+  // PKBM-yyyy-NNN
+  const year = new Date().getFullYear();
+  const nums = DATA.users
+    .map(u => (u.nis||'').match(/^PKBM-\d{4}-(\d{3})$/))
+    .filter(Boolean)
+    .map(m => parseInt(m[1],10));
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `PKBM-${year}-${String(next).padStart(3,'0')}`;
+}
+function generatePassword(){
+  const s = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let out = '';
+  for(let i=0;i<8;i++) out += s[Math.floor(Math.random()*s.length)];
+  return out;
+}
+function openAddSiswaModal(){
+  const suggestedNIS = generateNIS();
+  const suggestedPW = generatePassword();
+  openModal('Tambah Akun Siswa', `
+    <form id="add-siswa-form" class="stack" autocomplete="off">
+      <div class="field"><label for="as-name">Nama lengkap</label>
+        <input class="input" id="as-name" name="name" required placeholder="cth: Andi Prasetya"/></div>
+      <div class="field"><label for="as-email">Email</label>
+        <input class="input" id="as-email" name="email" type="email" required placeholder="andi@mugisae.id"/>
+        <span class="hint">Dipakai untuk login. Harus unik.</span></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:140px"><label for="as-nis">NIS</label>
+          <input class="input" id="as-nis" name="nis" required value="${escapeHtml(suggestedNIS)}"/></div>
+        <div class="field" style="flex:1;min-width:140px"><label for="as-paket">Paket</label>
+          <select class="select" id="as-paket" name="paket" required>
+            ${DATA.paket.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join('')}
           </select></div>
-        <div class="field"><label>Kata sandi</label><input class="input" name="pw" type="password" minlength="8" required/></div>
-        <button class="btn primary" type="submit">Daftar</button>
-      </form>
-      <p class="muted" style="margin-top:8px;font-size:.82rem">Dengan mendaftar, Anda menyetujui kebijakan privasi & syarat ketentuan platform.</p>`);
-    $('#reg-form').addEventListener('submit', ev => {
-      ev.preventDefault();
-      const fd = new FormData(ev.target);
-      const u = { id:'u'+Date.now(), name:fd.get('name'), email:fd.get('email'), password:fd.get('pw'), role:'siswa', paket:fd.get('paket'), kelas:'-', usia:18, kota:'-', joined:new Date().toISOString().slice(0,10), avatar:initials(fd.get('name')) };
-      DATA.users.push(u); closeModal(); toast('Akun terdaftar! Silakan masuk.','success');
-      $('#login-email').value = u.email; $('#login-password').value = u.password;
-    });
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:140px"><label for="as-kelas">Kelas / Rombel</label>
+          <input class="input" id="as-kelas" name="kelas" placeholder="cth: X-IPS / Setara SMA Kelas 11"/></div>
+        <div class="field" style="flex:1;min-width:140px"><label for="as-usia">Usia</label>
+          <input class="input" id="as-usia" name="usia" type="number" min="13" max="80" placeholder="cth: 18"/></div>
+      </div>
+      <div class="field"><label for="as-kota">Kota</label>
+        <input class="input" id="as-kota" name="kota" placeholder="cth: Bandung"/></div>
+      <div class="field"><label for="as-hp">No. HP wali / siswa <span class="muted">(opsional)</span></label>
+        <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>
+      <div class="field"><label for="as-pw">Kata sandi awal</label>
+        <div class="input-group">
+          <input class="input" id="as-pw" name="pw" type="text" required minlength="6" value="${escapeHtml(suggestedPW)}"/>
+          <button type="button" class="toggle" id="as-regen-pw" aria-label="Acak ulang sandi" title="Acak ulang">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 19 4.51L23 8"/></svg>
+          </button>
+        </div>
+        <span class="hint">Catat sandi ini & berikan ke siswa. Min. 6 karakter.</span></div>
+      <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn" id="as-cancel">Batal</button>
+        <button type="submit" class="btn primary">Simpan akun siswa</button>
+      </div>
+    </form>
+  `);
+  $('#as-cancel').addEventListener('click', closeModal);
+  $('#as-regen-pw').addEventListener('click', ()=>{ $('#as-pw').value = generatePassword(); });
+  $('#add-siswa-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = (fd.get('name')||'').toString().trim();
+    const email = (fd.get('email')||'').toString().trim();
+    const nis = (fd.get('nis')||'').toString().trim();
+    const paket = (fd.get('paket')||'').toString();
+    const kelas = (fd.get('kelas')||'').toString().trim() || '-';
+    const usia = parseInt((fd.get('usia')||'').toString(),10) || null;
+    const kota = (fd.get('kota')||'').toString().trim() || '-';
+    const hp = (fd.get('hp')||'').toString().trim();
+    const pw = (fd.get('pw')||'').toString();
+
+    if(!name || !email || !nis || !paket || !pw){
+      return toast('Lengkapi field wajib','error');
+    }
+    if(pw.length < 6) return toast('Sandi minimal 6 karakter','error');
+    if(DATA.users.some(u => u.email.toLowerCase()===email.toLowerCase())){
+      return toast('Email sudah dipakai akun lain','error');
+    }
+    if(DATA.users.some(u => (u.nis||'').toLowerCase()===nis.toLowerCase())){
+      return toast('NIS sudah dipakai akun lain','error');
+    }
+
+    const u = {
+      id: 'u' + Date.now(),
+      name, email, nis,
+      password: pw,
+      role: 'siswa',
+      paket,
+      kelas,
+      usia,
+      kota,
+      hp,
+      joined: new Date().toISOString().slice(0,10),
+      avatar: initials(name),
+    };
+    DATA.users.push(u);
+    saveCustomUsers();
+    closeModal();
+    toast(`Akun siswa "${name}" berhasil dibuat`,'success');
+    navigate(App.view);
   });
+  // Focus first field
+  setTimeout(()=>{ const el=$('#as-name'); if(el) el.focus(); }, 50);
 }
 
 /* ===== Top bar interactions ===== */
@@ -2519,6 +2634,9 @@ function confetti(opts){
 
 /* ===== Boot ===== */
 function boot(){
+  // Track which users came from the seed dataset so we don't persist them
+  DATA._seedUserIds = DATA.users.map(u => u.id);
+  loadCustomUsers();
   bindAuth();
   bindGlobals();
   bindRipple();
