@@ -1,4 +1,4 @@
-# Sekolah Kesetaraan Online — Paket A · B · C
+# PKBM MUGI SAE — Paket A · B · C
 
 Platform belajar online untuk warga belajar PKBM (Pusat Kegiatan Belajar Masyarakat) jenjang Paket A (setara SD), Paket B (setara SMP), dan Paket C (setara SMA).
 
@@ -20,9 +20,9 @@ Semua akun memakai kata sandi: **`demo123`**
 
 | Peran | Email                       |
 | ----- | --------------------------- |
-| Siswa | `siti@kesetaraan.id`        |
-| Guru  | `budi@kesetaraan.id`        |
-| Admin | `admin@kesetaraan.id`       |
+| Siswa | `siti@mugisae.id`        |
+| Guru  | `budi@mugisae.id`        |
+| Admin | `admin@mugisae.id`       |
 
 ## Fitur utama
 
