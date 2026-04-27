@@ -80,13 +80,14 @@ router.post('/', requireRole('admin', 'guru'), async (req, res) => {
 router.put('/:id', requireRole('admin', 'guru'), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
+    const body = req.body || {};
     const fields = [];
     const args = [];
     const allow = ['name', 'icon', 'description', 'sort_order', 'color'];
     for (const k of allow) {
-      if (req.body[k] !== undefined) {
+      if (body[k] !== undefined) {
         fields.push(`${k} = ?`);
-        args.push(k === 'sort_order' ? parseInt(req.body[k], 10) : req.body[k]);
+        args.push(k === 'sort_order' ? parseInt(body[k], 10) : body[k]);
       }
     }
     if (fields.length === 0) {

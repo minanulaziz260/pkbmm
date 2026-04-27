@@ -25,6 +25,32 @@ function generatePassword() {
 }
 
 const VALID_ROLES = ['siswa', 'guru', 'admin'];
+const PAKET_CODE_RE = /^[A-Z]$/;
+
+async function validatePaketCodes(codes) {
+  // codes: array of strings; validate format then ensure each exists in `packages`.
+  if (!Array.isArray(codes) || codes.length === 0) return [];
+  for (const c of codes) {
+    if (typeof c !== 'string' || !PAKET_CODE_RE.test(c)) {
+      const err = new Error(`Kode paket tidak valid: "${c}". Harus 1 huruf kapital A-Z.`);
+      err.status = 400;
+      throw err;
+    }
+  }
+  const placeholders = codes.map(() => '?').join(',');
+  const [rows] = await pool.query(
+    `SELECT code FROM packages WHERE code IN (${placeholders})`,
+    codes,
+  );
+  const found = new Set(rows.map(r => r.code));
+  const missing = codes.filter(c => !found.has(c));
+  if (missing.length) {
+    const err = new Error(`Paket belum terdaftar: ${missing.join(', ')}`);
+    err.status = 400;
+    throw err;
+  }
+  return codes;
+}
 
 function parseJsonField(v) {
   if (v == null) return null;
@@ -111,13 +137,13 @@ router.post('/', requireRole('admin'), async (req, res) => {
     let paket = null;
     if (role === 'siswa') {
       if (!b.paket) return res.status(400).json({ error: 'BadRequest', message: 'Paket wajib untuk siswa' });
-      paket = [String(b.paket)];
+      paket = await validatePaketCodes([String(b.paket)]);
     } else if (role === 'guru') {
       const arr = Array.isArray(b.paket) ? b.paket : (b.paket ? [b.paket] : []);
       if (arr.length === 0) {
         return res.status(400).json({ error: 'BadRequest', message: 'Pilih minimal 1 paket untuk guru' });
       }
-      paket = arr.map(String);
+      paket = await validatePaketCodes(arr.map(String));
     }
 
     if (role === 'siswa' && !((b.desa || '').toString().trim())) {
@@ -174,7 +200,8 @@ router.post('/', requireRole('admin'), async (req, res) => {
     });
   } catch (err) {
     console.error('[users.create]', err);
-    return res.status(500).json({ error: 'ServerError', message: err.message });
+    const status = err.status || 500;
+    return res.status(status).json({ error: status === 400 ? 'BadRequest' : 'ServerError', message: err.message });
   }
 });
 
@@ -193,8 +220,13 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
       }
     }
     if (b.paket !== undefined) {
+      let paketArr = null;
+      if (b.paket) {
+        const raw = Array.isArray(b.paket) ? b.paket : [b.paket];
+        paketArr = await validatePaketCodes(raw.map(String));
+      }
       fields.push('paket = ?');
-      args.push(b.paket ? JSON.stringify(Array.isArray(b.paket) ? b.paket : [b.paket]) : null);
+      args.push(paketArr ? JSON.stringify(paketArr) : null);
     }
     if (fields.length === 0) {
       return res.status(400).json({ error: 'BadRequest', message: 'Tidak ada field yang diubah' });
@@ -206,7 +238,8 @@ router.put('/:id', requireRole('admin'), async (req, res) => {
     return res.json({ user: rowToUser(rows[0]) });
   } catch (err) {
     console.error('[users.update]', err);
-    return res.status(500).json({ error: 'ServerError', message: err.message });
+    const status = err.status || 500;
+    return res.status(status).json({ error: status === 400 ? 'BadRequest' : 'ServerError', message: err.message });
   }
 });
 

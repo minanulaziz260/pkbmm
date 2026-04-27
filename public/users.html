@@ -94,7 +94,7 @@
         <td><b>${escapeHtml(u.name)}</b></td>
         <td><code class="id">${escapeHtml(u.user_id)}</code>${u.email ? `<div class="muted" style="font-size:.78rem">${escapeHtml(u.email)}</div>` : ''}</td>
         <td><span class="badge primary">${escapeHtml(u.role)}</span></td>
-        <td>${paketTxt}</td>
+        <td>${escapeHtml(paketTxt)}</td>
         <td>${escapeHtml(u.desa || '-')}</td>
         <td>${fmtDate(u.created_at)}</td>
         <td>${u.is_active ? '<span class="badge ok">Aktif</span>' : '<span class="badge warn">Nonaktif</span>'}</td>
