@@ -1954,26 +1954,50 @@ function viewGuruNilai(){
 }
 
 function viewKelolaPengumuman(){
+  const editing = App.editingAnnId ? DATA.pengumuman.find(p => p.id===App.editingAnnId) : null;
   return `
-    <div class="page-head"><div><h1>Pengumuman</h1><p>Posting & kelola pengumuman</p></div></div>
+    <div class="page-head">
+      <div><h1>Pengumuman Global</h1><p>Buat, edit, dan kelola pengumuman untuk seluruh pengguna.</p></div>
+    </div>
     <div class="card" style="margin-bottom:14px">
-      <h3>Buat pengumuman baru</h3>
+      <h3>${editing ? `Edit pengumuman` : `Buat pengumuman baru`}</h3>
       <form id="ann-form" class="stack" style="margin-top:10px">
-        <div class="field"><label for="ann-title">Judul</label><input class="input" id="ann-title" required/></div>
-        <div class="field"><label for="ann-body">Isi</label><textarea class="textarea" id="ann-body" required></textarea></div>
-        <div class="row">
-          <select class="select" id="ann-level" style="max-width:200px"><option value="info">Info</option><option value="warn">Penting</option><option value="danger">Mendesak</option></select>
-          <button class="btn primary" type="submit">Posting</button>
+        <input type="hidden" id="ann-id" value="${escapeHtml(editing?.id||'')}"/>
+        <div class="field"><label for="ann-title">Judul</label>
+          <input class="input" id="ann-title" required value="${escapeHtml(editing?.judul||'')}"/></div>
+        <div class="field"><label for="ann-body">Isi</label>
+          <textarea class="textarea" id="ann-body" required rows="4">${escapeHtml(editing?.isi||'')}</textarea></div>
+        <div class="row" style="flex-wrap:wrap;gap:8px">
+          <select class="select" id="ann-level" style="max-width:200px">
+            <option value="info" ${editing?.level==='info'?'selected':''}>Info</option>
+            <option value="warn" ${editing?.level==='warn'?'selected':''}>Penting</option>
+            <option value="danger" ${editing?.level==='danger'?'selected':''}>Mendesak</option>
+          </select>
+          ${editing
+            ? `<button class="btn primary" type="submit">Simpan perubahan</button>
+               <button class="btn" type="button" id="ann-cancel-edit">Batal</button>`
+            : `<button class="btn primary" type="submit">Posting</button>`}
         </div>
       </form>
     </div>
-    <div id="ann-list">
-      ${DATA.pengumuman.map(p=>`
+    <h3 style="margin:18px 0 8px">Daftar pengumuman (${DATA.pengumuman.length})</h3>
+    <div id="ann-list" class="stack" style="gap:10px">
+      ${DATA.pengumuman.length===0
+        ? `<div class="empty-state"><h4>Belum ada pengumuman</h4><p>Posting pengumuman pertama lewat form di atas.</p></div>`
+        : DATA.pengumuman.map(p=>`
         <article class="announce ${p.level==='warn'?'warn':p.level==='danger'?'danger':''}">
-          <time>${fmtDate(p.tgl)}</time>
-          <h5>${escapeHtml(p.judul)}</h5>
-          <p>${escapeHtml(p.isi)}</p>
-          <div class="row" style="margin-top:8px"><button class="btn sm danger" data-del-ann="${p.id}">Hapus</button></div>
+          <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
+            <div style="min-width:0;flex:1">
+              <time>${fmtDate(p.tgl)}</time>
+              <h5 style="margin:4px 0">${escapeHtml(p.judul)}</h5>
+              <p style="margin:0">${escapeHtml(p.isi)}</p>
+              <span class="badge ${p.level==='warn'?'warn':p.level==='danger'?'danger':'info'}" style="margin-top:6px">${p.level==='warn'?'Penting':p.level==='danger'?'Mendesak':'Info'}</span>
+            </div>
+            <div class="row" style="gap:6px;flex-shrink:0">
+              <button class="btn sm" data-edit-ann="${p.id}">✎ Edit</button>
+              <button class="btn sm danger" data-del-ann="${p.id}">🗑 Hapus</button>
+            </div>
+          </div>
         </article>`).join('')}
     </div>
   `;
@@ -2279,26 +2303,88 @@ function viewAdminKurikulum(){
 }
 
 function viewAdminLaporan(){
+  const totalSiswa = DATA.users.filter(u=>u.role==='siswa').length || 1684;
+  const totalGuru  = DATA.users.filter(u=>u.role==='guru').length || 22;
+  const avgScore = 78;
+  const completionRate = 67;
+  const monthly = [80,95,110,125,140,160,180,200,225,260,300,340];
+  const months = ['Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des','Jan','Feb','Mar','Apr'];
+  const subjectStats = [
+    {name:'Matematika',          paket:'C', pengakses:892, skor:78},
+    {name:'Bahasa Indonesia',    paket:'C', pengakses:740, skor:82},
+    {name:'Bahasa Inggris',      paket:'C', pengakses:612, skor:71},
+    {name:'TIK & Literasi Digital', paket:'B', pengakses:388, skor:85},
+    {name:'Sejarah Indonesia',   paket:'C', pengakses:340, skor:76},
+  ];
   return `
-    <div class="page-head"><div><h1>Laporan & Statistik</h1></div>
-      <button class="btn" id="export-laporan">⬇ Ekspor CSV</button></div>
-    <div class="card" style="margin-bottom:14px">
-      <h3>Pertumbuhan siswa (12 bulan)</h3>
-      <div class="barchart">
-        ${[80,95,110,125,140,160,180,200,225,260,300,340].map((v,i)=>`
-          <div class="bar"><div class="b" style="height:${v/4}%"></div><div class="v">${v}</div><div>${['Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des','Jan','Feb','Mar','Apr'][i]}</div></div>`).join('')}
+    <div class="page-head">
+      <div><h1>Laporan & Statistik</h1><p>Pantau pertumbuhan siswa, progres, dan skor rata-rata kuis.</p></div>
+      <div class="row" style="gap:6px">
+        <button class="btn" id="export-laporan">⬇ Ekspor CSV</button>
+        <button class="btn primary" id="laporan-print">🖨 Cetak</button>
       </div>
     </div>
-    <div class="card">
+    <div class="stats-grid" style="margin-bottom:14px">
+      <div class="stat with-ico"><div class="stat-ico" aria-hidden="true">👥</div>
+        <div><div class="v">${totalSiswa.toLocaleString('id-ID')}</div><div class="l">Total siswa</div><div class="delta up">↑ +${Math.round(totalSiswa*0.07)} bulan ini</div></div></div>
+      <div class="stat with-ico"><div class="stat-ico cyan" aria-hidden="true">👨‍🏫</div>
+        <div><div class="v">${totalGuru}</div><div class="l">Guru/Tutor aktif</div><div class="delta up">↑ +3</div></div></div>
+      <div class="stat with-ico"><div class="stat-ico amber" aria-hidden="true">📈</div>
+        <div><div class="v">${completionRate}%</div><div class="l">Penyelesaian materi</div><div class="delta up">↑ +5%</div></div></div>
+      <div class="stat with-ico"><div class="stat-ico rose" aria-hidden="true">📊</div>
+        <div><div class="v">${avgScore}</div><div class="l">Rata-rata skor kuis</div><div class="delta up">↑ +2 poin</div></div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <h3>Pertumbuhan siswa (12 bulan)</h3>
+      <p class="muted" style="margin-top:0">Klik bar untuk melihat detail bulan tersebut.</p>
+      <div class="barchart">
+        ${monthly.map((v,i)=>`
+          <button type="button" class="bar bar-clickable" data-month-detail="${i}" aria-label="Detail ${months[i]}: ${v} siswa">
+            <div class="b" style="height:${v/4}%"></div>
+            <div class="v">${v}</div>
+            <div>${months[i]}</div>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px">
+      <div class="card">
+        <h3>Distribusi siswa per paket</h3>
+        <div class="stack" style="gap:8px;margin-top:10px">
+          ${DATA.paket.map(p=>{
+            const pct = Math.round((p.siswa/Math.max(totalSiswa,1))*100);
+            return `
+            <div>
+              <div class="row" style="justify-content:space-between;font-size:.88rem;font-weight:600">
+                <span>${escapeHtml(p.label)}</span><span class="muted">${p.siswa} siswa (${pct}%)</span>
+              </div>
+              <div class="progress" style="margin-top:4px"><div style="width:${pct}%;background:${p.color}"></div></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Skor kuis berdasarkan paket</h3>
+        <div class="stack" style="gap:8px;margin-top:10px">
+          ${[{p:'A',s:74},{p:'B',s:79},{p:'C',s:81}].map(x=>`
+            <div>
+              <div class="row" style="justify-content:space-between;font-size:.88rem;font-weight:600">
+                <span>Paket ${x.p}</span><span class="muted">${x.s} / 100</span>
+              </div>
+              <div class="progress" style="margin-top:4px"><div style="width:${x.s}%"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
       <h3>Top 5 mata pelajaran terpopuler</h3>
       <div class="table-wrap"><table>
         <thead><tr><th>Mata pelajaran</th><th>Paket</th><th>Pengakses</th><th>Rata-rata skor</th></tr></thead>
         <tbody>
-          <tr><td>Matematika</td><td>C</td><td>892</td><td>78</td></tr>
-          <tr><td>Bahasa Indonesia</td><td>C</td><td>740</td><td>82</td></tr>
-          <tr><td>Bahasa Inggris</td><td>C</td><td>612</td><td>71</td></tr>
-          <tr><td>TIK & Literasi Digital</td><td>B</td><td>388</td><td>85</td></tr>
-          <tr><td>Sejarah Indonesia</td><td>C</td><td>340</td><td>76</td></tr>
+          ${subjectStats.map(s=>`
+            <tr><td>${escapeHtml(s.name)}</td>
+                <td><span class="badge info">Paket ${escapeHtml(s.paket)}</span></td>
+                <td>${s.pengakses.toLocaleString('id-ID')}</td>
+                <td><b>${s.skor}</b> / 100</td></tr>`).join('')}
         </tbody>
       </table></div>
     </div>
@@ -2306,29 +2392,63 @@ function viewAdminLaporan(){
 }
 
 function viewAdminSetting(){
+  const cfg = Store.get('sk:settings', {
+    nama:'PKBM MUGI SAE', email:'halo@mugisae.id', tahun:'2025/2026',
+    logo:'MS', maxUpload:25, regOpen:true, verifNIK:false, notifWA:true,
+    pemeliharaan:false, kebijakanPrivasi:'',
+  });
+  const fmtTglNow = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   return `
-    <div class="page-head"><div><h1>Pengaturan Sistem</h1></div></div>
-    <div class="grid" style="grid-template-columns:1fr;gap:18px">
+    <div class="page-head">
+      <div><h1>Pengaturan Sistem</h1><p>Konfigurasi platform — perubahan disimpan di browser admin.</p></div>
+    </div>
+    <form id="setting-form" class="stack" style="gap:14px">
       <section class="card">
         <h3>Informasi platform</h3>
-        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
-          <div class="field"><label>Nama platform</label><input class="input" value="PKBM MUGI SAE"/></div>
-          <div class="field"><label>Email kontak</label><input class="input" value="halo@mugisae.id"/></div>
-          <div class="field"><label>Tahun ajaran</label><input class="input" value="2025/2026"/></div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px">
+          <div class="field"><label>Nama platform</label>
+            <input class="input" name="nama" value="${escapeHtml(cfg.nama)}" required/></div>
+          <div class="field"><label>Email kontak</label>
+            <input class="input" name="email" type="email" value="${escapeHtml(cfg.email)}"/></div>
+          <div class="field"><label>Tahun ajaran</label>
+            <input class="input" name="tahun" value="${escapeHtml(cfg.tahun)}"/></div>
+          <div class="field"><label>Logo / Inisial</label>
+            <input class="input" name="logo" value="${escapeHtml(cfg.logo)}" maxlength="3"/>
+            <span class="hint">Maks 3 karakter — tampil di topbar.</span></div>
+          <div class="field"><label>Batas upload (MB)</label>
+            <input class="input" name="maxUpload" type="number" min="1" max="500" value="${cfg.maxUpload}"/>
+            <span class="hint">Batas ukuran file untuk materi & tugas.</span></div>
         </div>
       </section>
       <section class="card">
-        <h3>Pendaftaran</h3>
-        <label class="row"><input type="checkbox" checked/> Pendaftaran terbuka untuk umum</label>
-        <label class="row" style="margin-top:6px"><input type="checkbox"/> Wajib verifikasi NIK Dukcapil</label>
-        <label class="row" style="margin-top:6px"><input type="checkbox" checked/> Kirim notifikasi WhatsApp</label>
+        <h3>Pendaftaran & Notifikasi</h3>
+        <div class="stack" style="gap:8px;margin-top:8px">
+          <label class="row"><input type="checkbox" name="regOpen" ${cfg.regOpen?'checked':''}/> Pendaftaran terbuka untuk umum</label>
+          <label class="row"><input type="checkbox" name="verifNIK" ${cfg.verifNIK?'checked':''}/> Wajib verifikasi NIK Dukcapil</label>
+          <label class="row"><input type="checkbox" name="notifWA" ${cfg.notifWA?'checked':''}/> Kirim notifikasi WhatsApp</label>
+          <label class="row"><input type="checkbox" name="pemeliharaan" ${cfg.pemeliharaan?'checked':''}/> Mode pemeliharaan (block login non-admin)</label>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Kebijakan & Privasi</h3>
+        <div class="field" style="margin-top:8px"><label>Teks kebijakan privasi</label>
+          <textarea class="textarea" name="kebijakanPrivasi" rows="4" placeholder="Tulis kebijakan privasi singkat untuk ditampilkan di halaman login...">${escapeHtml(cfg.kebijakanPrivasi||'')}</textarea>
+        </div>
       </section>
       <section class="card">
         <h3>Backup & Keamanan</h3>
-        <p class="muted">Backup otomatis terakhir: ${fmtDate(new Date())} 03:00 WIB.</p>
-        <div class="row"><button class="btn">Backup sekarang</button><button class="btn">Audit login</button><button class="btn danger">Reset cache</button></div>
+        <p class="muted">Backup otomatis terakhir: ${fmtTglNow} 03:00 WIB.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="btn" type="button" id="setting-backup">💾 Backup sekarang</button>
+          <button class="btn" type="button" id="setting-audit">🔍 Audit login</button>
+          <button class="btn danger" type="button" id="setting-reset-cache">♻ Reset cache</button>
+        </div>
       </section>
-    </div>
+      <div class="row" style="gap:10px;justify-content:flex-end">
+        <button class="btn" type="button" id="setting-revert">Batalkan</button>
+        <button class="btn primary" type="submit">Simpan pengaturan</button>
+      </div>
+    </form>
   `;
 }
 
@@ -2443,21 +2563,140 @@ function bindViewActions(){
     try{ await navigator.clipboard.writeText(link); toast('Tautan disalin: '+link,'success') }catch(e){ toast(link,'info') }
   });
 
-  // Pengumuman post
+  // ===== Pengumuman: post / edit / delete =====
   const af = $('#ann-form'); if(af) af.addEventListener('submit', e=>{
     e.preventDefault();
-    DATA.pengumuman.unshift({
-      id:'p'+Date.now(), tgl:new Date().toISOString().slice(0,10),
-      judul:$('#ann-title').value, isi:$('#ann-body').value, level:$('#ann-level').value
-    });
-    toast('Pengumuman diposting','success');
+    const id = $('#ann-id')?.value || '';
+    const judul = $('#ann-title').value.trim();
+    const isi   = $('#ann-body').value.trim();
+    const level = $('#ann-level').value;
+    if(!judul || !isi) return toast('Judul & isi pengumuman wajib','error');
+    if(id){
+      const p = DATA.pengumuman.find(x => x.id===id);
+      if(p){ p.judul=judul; p.isi=isi; p.level=level; toast('Pengumuman diperbarui','success'); }
+      App.editingAnnId = null;
+    } else {
+      DATA.pengumuman.unshift({
+        id:'p'+Date.now(), tgl:new Date().toISOString().slice(0,10),
+        judul, isi, level,
+      });
+      toast('Pengumuman diposting','success');
+    }
     navigate(App.view);
   });
-  $$('[data-del-ann]').forEach(b=>b.addEventListener('click', e=>{
-    const id = e.currentTarget.dataset.delAnn;
-    DATA.pengumuman = DATA.pengumuman.filter(p=>p.id!==id);
-    toast('Pengumuman dihapus','info'); navigate(App.view);
+  const ace = $('#ann-cancel-edit');
+  if(ace) ace.addEventListener('click', () => { App.editingAnnId = null; navigate(App.view); });
+  $$('[data-edit-ann]').forEach(b=>b.addEventListener('click', e=>{
+    App.editingAnnId = e.currentTarget.dataset.editAnn;
+    navigate(App.view);
+    setTimeout(()=>{ $('#ann-title')?.focus(); }, 80);
   }));
+  $$('[data-del-ann]').forEach(b=>b.addEventListener('click', async e=>{
+    const id = e.currentTarget.dataset.delAnn;
+    const p = DATA.pengumuman.find(x => x.id===id);
+    if(!p) return;
+    const ok = await confirmDialog({
+      title:'Hapus pengumuman?',
+      message:`Pengumuman "<b>${escapeHtml(p.judul)}</b>" akan dihapus permanen.`,
+      confirmText:'Ya, hapus', danger:true,
+    });
+    if(!ok) return;
+    DATA.pengumuman = DATA.pengumuman.filter(x => x.id!==id);
+    toast('Pengumuman dihapus','info');
+    navigate(App.view);
+  }));
+
+  // ===== Laporan: bar bulan + cetak =====
+  $$('[data-month-detail]').forEach(b => b.addEventListener('click', e => {
+    const idx = parseInt(e.currentTarget.dataset.monthDetail,10);
+    const months = ['Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des','Jan','Feb','Mar','Apr'];
+    const monthly = [80,95,110,125,140,160,180,200,225,260,300,340];
+    const v = monthly[idx];
+    const prev = idx>0 ? monthly[idx-1] : v;
+    const delta = v - prev;
+    openModal(`Detail bulan ${months[idx]}`, `
+      <div class="stack" style="gap:10px">
+        <p>Total siswa terdaftar pada bulan <b>${months[idx]}</b>: <b>${v}</b> siswa</p>
+        <p>Perubahan vs bulan sebelumnya: <b style="color:${delta>=0?'var(--ok)':'var(--err)'}">${delta>=0?'+':''}${delta}</b> siswa</p>
+        <ul style="margin:0;padding-left:18px">
+          <li>Pendaftaran baru: ~${Math.max(delta,0)} siswa</li>
+          <li>Lulus / pindah: ~${Math.max(-delta,0)} siswa</li>
+          <li>Aktivasi akun: ~${Math.round(v*0.92)} siswa (92%)</li>
+        </ul>
+      </div>`);
+  }));
+  const lpPrint = $('#laporan-print');
+  if(lpPrint) lpPrint.addEventListener('click', () => { toast('Membuka dialog cetak…','info'); setTimeout(()=>window.print(), 300); });
+
+  // ===== Pengaturan Sistem =====
+  const sf = $('#setting-form');
+  if(sf){
+    sf.addEventListener('submit', e => {
+      e.preventDefault();
+      const fd = new FormData(sf);
+      const cfg = {
+        nama:(fd.get('nama')||'').toString().trim() || 'PKBM MUGI SAE',
+        email:(fd.get('email')||'').toString().trim(),
+        tahun:(fd.get('tahun')||'').toString().trim(),
+        logo:(fd.get('logo')||'MS').toString().trim().slice(0,3) || 'MS',
+        maxUpload:parseInt(fd.get('maxUpload')||25,10),
+        regOpen:fd.get('regOpen')==='on',
+        verifNIK:fd.get('verifNIK')==='on',
+        notifWA:fd.get('notifWA')==='on',
+        pemeliharaan:fd.get('pemeliharaan')==='on',
+        kebijakanPrivasi:(fd.get('kebijakanPrivasi')||'').toString(),
+      };
+      Store.set('sk:settings', cfg);
+      // Reflect to topbar/footer
+      const brandTitle = document.querySelector('.brand .title');
+      const brandLogo  = document.querySelector('.brand .logo');
+      if(brandTitle) brandTitle.textContent = cfg.nama;
+      if(brandLogo)  brandLogo.textContent  = cfg.logo;
+      toast('Pengaturan tersimpan','success');
+    });
+    const rev = $('#setting-revert');
+    if(rev) rev.addEventListener('click', () => { navigate('pengaturan'); toast('Perubahan dibatalkan','info'); });
+    const bk = $('#setting-backup');
+    if(bk) bk.addEventListener('click', () => {
+      try{
+        const dump = { ts:new Date().toISOString(),
+          users:Store.get('sk:users:custom',[]),
+          pengumuman:DATA.pengumuman, settings:Store.get('sk:settings',{}) };
+        const blob = new Blob([JSON.stringify(dump,null,2)],{type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `mugisae-backup-${new Date().toISOString().slice(0,10)}.json`;
+        a.click(); URL.revokeObjectURL(url);
+        toast('Backup berhasil diunduh','success');
+      } catch(err){ toast('Backup gagal: '+err.message,'error'); }
+    });
+    const ad = $('#setting-audit');
+    if(ad) ad.addEventListener('click', () => {
+      const lastLogin = Store.get('sk:auth')?.ts || Date.now();
+      openModal('Audit Login', `
+        <div class="stack" style="gap:8px">
+          <p>Login terakhir admin: <b>${new Date(lastLogin).toLocaleString('id-ID')}</b></p>
+          <ul style="margin:0;padding-left:18px">
+            <li>IP: 127.0.0.1 (localhost)</li>
+            <li>Perangkat: ${escapeHtml(navigator.userAgent.split(') ')[0]+')')}</li>
+            <li>Total sesi minggu ini: 14</li>
+            <li>Login gagal 7 hari: 0</li>
+          </ul>
+          <p class="muted">Dalam produksi, log diambil dari backend audit-trail.</p>
+        </div>`);
+    });
+    const rc = $('#setting-reset-cache');
+    if(rc) rc.addEventListener('click', async () => {
+      const ok = await confirmDialog({
+        title:'Reset cache?', danger:true,
+        message:'Cache lokal (tema, font, halaman favorit) akan dihapus. Akun & pengaturan tidak terhapus. Lanjutkan?',
+        confirmText:'Reset cache',
+      });
+      if(!ok) return;
+      ['sk:theme','sk:fs','sk:ct','sk:fav:'+(App.user?.id||'anon')].forEach(k => Store.del(k));
+      toast('Cache direset','info');
+    });
+  }
 
   // Search siswa table (legacy guru view)
   const ss = $('#siswa-search'); if(ss) ss.addEventListener('input', e=>filterTable('siswa-table', e.target.value));
@@ -3954,6 +4193,12 @@ function boot(){
   // Track which users came from the seed dataset so we don't persist them
   DATA._seedUserIds = DATA.users.map(u => u.id);
   loadCustomUsers();
+  // Apply persisted settings (brand name/logo)
+  const cfg = Store.get('sk:settings', null);
+  if(cfg){
+    const t = document.querySelector('.brand .title'); if(t && cfg.nama) t.textContent = cfg.nama;
+    const l = document.querySelector('.brand .logo');  if(l && cfg.logo) l.textContent = cfg.logo;
+  }
   bindAuth();
   bindGlobals();
   bindRipple();
