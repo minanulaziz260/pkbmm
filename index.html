@@ -943,13 +943,20 @@ const App = {
  */
 function loadCustomUsers(){
   const arr = Store.get('sk:users:custom');
-  if(Array.isArray(arr)){
-    arr.forEach(u => {
-      if(!DATA.users.some(x => x.id===u.id || x.email.toLowerCase()===u.email.toLowerCase())){
-        DATA.users.push(u);
-      }
+  if(!Array.isArray(arr)) return;
+  arr.forEach(u => {
+    const uEmail = (u.email || '').toLowerCase();
+    const uNis   = (u.nis   || '').toUpperCase();
+    const dup = DATA.users.some(x => {
+      if(x.id === u.id) return true;
+      const xEmail = (x.email || '').toLowerCase();
+      const xNis   = (x.nis   || '').toUpperCase();
+      if(uEmail && xEmail && uEmail === xEmail) return true;
+      if(uNis   && xNis   && uNis   === xNis  ) return true;
+      return false;
     });
-  }
+    if(!dup) DATA.users.push(u);
+  });
 }
 function saveCustomUsers(){
   const seedIds = new Set(DATA._seedUserIds || []);
@@ -2102,7 +2109,8 @@ function bindViewActions(){
     const uid = e.currentTarget.dataset.delUser;
     const u = DATA.users.find(x => x.id===uid);
     if(!u) return;
-    if(!confirm(`Hapus akun "${u.name}" (${u.email})? Tindakan ini tidak bisa dibatalkan.`)) return;
+    const loginId = u.nis || u.email || '-';
+    if(!confirm(`Hapus akun "${u.name}" (${loginId})? Tindakan ini tidak bisa dibatalkan.`)) return;
     DATA.users = DATA.users.filter(x => x.id!==uid);
     saveCustomUsers();
     toast(`Akun ${u.name} dihapus`,'info');
