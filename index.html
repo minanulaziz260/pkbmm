@@ -596,6 +596,23 @@
   .empty-state h4{margin:0 0 4px;color:var(--text);font-weight:800}
   .empty-state p{margin:0;font-size:.92rem}
 
+  /* Kurikulum paket toggle */
+  .paket-toggle{display:flex;align-items:center;gap:10px;width:100%;padding:8px 4px;
+    background:transparent;border:0;font-family:inherit;color:inherit;cursor:pointer;text-align:left;
+    border-radius:10px;transition:background .15s var(--ease)}
+  .paket-toggle:hover{background:var(--surface-2)}
+  .paket-toggle .paket-chev{display:inline-block;width:18px;color:var(--primary-600);font-weight:700}
+  .paket-toggle .paket-title{font-size:1.05rem}
+  .paket-toggle .paket-meta{font-size:.85rem;flex:1}
+  .paket-toggle .paket-color{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .paket-body{padding-top:6px}
+  .subject-item .name-link{padding:0;text-align:left;font-weight:700;font-size:1rem}
+  .subject-item .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .icon-pick .icon-tile{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;
+    background:var(--surface-2);border:2px solid transparent;font-size:1.25rem;transition:.15s}
+  .icon-pick:hover .icon-tile{transform:translateY(-1px);background:var(--primary-50)}
+  .icon-pick input:checked + .icon-tile{border-color:var(--primary);background:var(--primary-50)}
+
   /* Responsive helpers — mobile-first portrait optimization */
   @media (max-width:899px){
     /* Login: full-screen single column, hero replaced by compact brand strip */
@@ -2179,19 +2196,27 @@ function viewAdminPengguna(){
 
 function viewAdminPaket(){
   return `
-    <div class="page-head"><div><h1>Manajemen Paket</h1></div><button class="btn primary">+ Tambah Paket</button></div>
+    <div class="page-head">
+      <div><h1>Manajemen Paket</h1><p>Klik angka pada kartu untuk navigasi cepat ke siswa atau kurikulum.</p></div>
+      <button class="btn primary" id="add-paket">+ Tambah Paket</button>
+    </div>
     <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
       ${DATA.paket.map(p=>`
         <article class="card" style="border-top:4px solid ${p.color}">
           <h3>${escapeHtml(p.label)}</h3>
           <p class="muted">${escapeHtml(p.desc)}</p>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr">
-            <div class="stat"><div class="v">${p.siswa}</div><div class="l">Siswa aktif</div></div>
-            <div class="stat"><div class="v">${(DATA.subjects[p.id]||[]).length}</div><div class="l">Mata pelajaran</div></div>
+            <button type="button" class="stat clickable" data-paket-go-siswa="${escapeHtml(p.id)}" aria-label="Lihat siswa Paket ${escapeHtml(p.id)}">
+              <div class="v">${p.siswa}</div><div class="l">Siswa aktif</div>
+            </button>
+            <button type="button" class="stat clickable" data-paket-go-kurikulum="${escapeHtml(p.id)}" aria-label="Atur kurikulum Paket ${escapeHtml(p.id)}">
+              <div class="v">${(DATA.subjects[p.id]||[]).length}</div><div class="l">Mata pelajaran</div>
+            </button>
           </div>
           <div class="row" style="margin-top:10px">
-            <button class="btn sm">Atur kurikulum</button>
-            <button class="btn sm">Lihat siswa</button>
+            <button class="btn sm" data-paket-go-kurikulum="${escapeHtml(p.id)}">Atur kurikulum</button>
+            <button class="btn sm" data-paket-go-siswa="${escapeHtml(p.id)}">Lihat siswa</button>
+            <button class="btn sm" data-paket-edit="${escapeHtml(p.id)}" aria-label="Edit Paket ${escapeHtml(p.id)}">✎ Edit</button>
           </div>
         </article>`).join('')}
     </div>
@@ -2199,20 +2224,57 @@ function viewAdminPaket(){
 }
 
 function viewAdminKurikulum(){
+  const expanded = App.expandedPaket || { A:false, B:false, C:true };
+  App.expandedPaket = expanded;
   return `
-    <div class="page-head"><div><h1>Kurikulum</h1><p>Atur mata pelajaran per paket</p></div></div>
-    ${DATA.paket.map(p=>`
-      <details class="card" ${p.id==='C'?'open':''}>
-        <summary><b>${escapeHtml(p.label)}</b> — ${(DATA.subjects[p.id]||[]).length} mapel</summary>
-        <div class="materi-list" style="margin-top:8px">
-          ${(DATA.subjects[p.id]||[]).map(s=>`
-            <div class="materi-item">
-              <div class="ico" style="background:${hexA(s.color,.15)};color:${s.color}">${s.icon}</div>
-              <div class="info"><h5>${escapeHtml(s.name)}</h5><p>${s.materi} materi · ${s.kuis} kuis</p></div>
-              <div class="actions"><button class="btn sm">Edit</button></div>
-            </div>`).join('')}
+    <div class="page-head">
+      <div><h1>Kurikulum</h1><p>Atur mata pelajaran per paket. Klik header paket untuk expand / collapse.</p></div>
+    </div>
+    <div class="stack" style="gap:12px">
+    ${DATA.paket.map(p=>{
+      const subj = DATA.subjects[p.id] || [];
+      const totalMateri = subj.reduce((s,x)=>s+(x.materi||0),0);
+      const totalKuis   = subj.reduce((s,x)=>s+(x.kuis||0),0);
+      const isOpen = !!expanded[p.id];
+      return `
+      <section class="card" data-paket-section="${escapeHtml(p.id)}">
+        <button type="button" class="paket-toggle" data-paket-toggle="${escapeHtml(p.id)}" aria-expanded="${isOpen}" aria-controls="paket-body-${escapeHtml(p.id)}">
+          <span class="paket-chev" aria-hidden="true">${isOpen?'▼':'▶'}</span>
+          <span class="paket-title"><b>${escapeHtml(p.label)}</b></span>
+          <span class="paket-meta muted">${subj.length} mapel · ${totalMateri} materi · ${totalKuis} kuis</span>
+          <span class="paket-color" aria-hidden="true" style="background:${p.color}"></span>
+        </button>
+        <div id="paket-body-${escapeHtml(p.id)}" class="paket-body" ${isOpen?'':'hidden'}>
+          ${subj.length === 0 ? `
+            <div class="empty-state" style="margin-top:10px">
+              <h4>Belum ada mata pelajaran</h4>
+              <p>Tambahkan mata pelajaran pertama untuk Paket ${escapeHtml(p.id)}.</p>
+            </div>` : `
+            <div class="materi-list" style="margin-top:8px">
+              ${subj.map(s=>`
+                <div class="materi-item subject-item" data-subject-row="${escapeHtml(p.id)}|${escapeHtml(s.id)}">
+                  <div class="ico" style="background:${hexA(s.color,.15)};color:${s.color}">${s.icon}</div>
+                  <div class="info">
+                    <h5><button type="button" class="name-link" data-subject-detail="${escapeHtml(p.id)}|${escapeHtml(s.id)}">${escapeHtml(s.name)}</button></h5>
+                    <p>
+                      <button type="button" class="badge clickable info" data-subject-materi="${escapeHtml(p.id)}|${escapeHtml(s.id)}">${s.materi} materi</button>
+                      ·
+                      <button type="button" class="badge clickable warn" data-subject-kuis="${escapeHtml(p.id)}|${escapeHtml(s.id)}">${s.kuis} kuis</button>
+                    </p>
+                  </div>
+                  <div class="actions">
+                    <button class="btn sm" data-subject-edit="${escapeHtml(p.id)}|${escapeHtml(s.id)}">✎ Edit</button>
+                    <button class="btn sm danger" data-subject-del="${escapeHtml(p.id)}|${escapeHtml(s.id)}" aria-label="Hapus ${escapeHtml(s.name)}">🗑</button>
+                  </div>
+                </div>`).join('')}
+            </div>`}
+          <div class="row" style="margin-top:12px">
+            <button class="btn primary sm" data-add-mapel="${escapeHtml(p.id)}">+ Tambah Mapel di ${escapeHtml(p.label)}</button>
+          </div>
         </div>
-      </details>`).join('')}
+      </section>`;
+    }).join('')}
+    </div>
   `;
 }
 
@@ -2614,6 +2676,65 @@ function bindViewActions(){
     };
     const c = map[k]; if(!c) return;
     openModal(c.title, c.body);
+  }));
+
+  // ===== Admin: Manajemen Paket =====
+  const addPaketBtn = $('#add-paket');
+  if(addPaketBtn) addPaketBtn.addEventListener('click', () => openAddPaketModal());
+  $$('[data-paket-edit]').forEach(b => b.addEventListener('click', e => {
+    openEditPaketModal(e.currentTarget.dataset.paketEdit);
+  }));
+  $$('[data-paket-go-siswa]').forEach(b => b.addEventListener('click', e => {
+    App.filters.userRole = 'siswa';
+    App.filters.userPaket = e.currentTarget.dataset.paketGoSiswa;
+    toast(`Filter: Siswa Paket ${App.filters.userPaket}`,'info',1500);
+    navigate('pengguna');
+  }));
+  $$('[data-paket-go-kurikulum]').forEach(b => b.addEventListener('click', e => {
+    const pid = e.currentTarget.dataset.paketGoKurikulum;
+    App.expandedPaket = App.expandedPaket || { A:false, B:false, C:false };
+    Object.keys(App.expandedPaket).forEach(k => App.expandedPaket[k] = (k===pid));
+    navigate('kurikulum');
+  }));
+
+  // ===== Admin: Kurikulum =====
+  $$('[data-paket-toggle]').forEach(b => b.addEventListener('click', e => {
+    const pid = e.currentTarget.dataset.paketToggle;
+    App.expandedPaket = App.expandedPaket || { A:false, B:false, C:false };
+    App.expandedPaket[pid] = !App.expandedPaket[pid];
+    navigate('kurikulum');
+  }));
+  $$('[data-add-mapel]').forEach(b => b.addEventListener('click', e => {
+    openAddMapelModal(e.currentTarget.dataset.addMapel);
+  }));
+  $$('[data-subject-edit]').forEach(b => b.addEventListener('click', e => {
+    const [pid, sid] = e.currentTarget.dataset.subjectEdit.split('|');
+    openEditMapelModal(pid, sid);
+  }));
+  $$('[data-subject-del]').forEach(b => b.addEventListener('click', async e => {
+    const [pid, sid] = e.currentTarget.dataset.subjectDel.split('|');
+    const subj = (DATA.subjects[pid]||[]).find(s => s.id===sid); if(!subj) return;
+    const ok = await confirmDialog({
+      title:'Hapus mata pelajaran?',
+      message:`<b>${escapeHtml(subj.name)}</b> beserta ${subj.materi||0} materi & ${subj.kuis||0} kuis akan dihapus dari Paket ${escapeHtml(pid)}.`,
+      confirmText:'Ya, hapus', danger:true,
+    });
+    if(!ok) return;
+    DATA.subjects[pid] = (DATA.subjects[pid]||[]).filter(s => s.id!==sid);
+    toast(`Mapel "${subj.name}" dihapus`,'info');
+    navigate('kurikulum');
+  }));
+  $$('[data-subject-detail]').forEach(b => b.addEventListener('click', e => {
+    const [pid, sid] = e.currentTarget.dataset.subjectDetail.split('|');
+    openSubjectDetail(pid, sid);
+  }));
+  $$('[data-subject-materi]').forEach(b => b.addEventListener('click', e => {
+    const [pid, sid] = e.currentTarget.dataset.subjectMateri.split('|');
+    openSubjectDetail(pid, sid, 'materi');
+  }));
+  $$('[data-subject-kuis]').forEach(b => b.addEventListener('click', e => {
+    const [pid, sid] = e.currentTarget.dataset.subjectKuis.split('|');
+    openSubjectDetail(pid, sid, 'kuis');
   }));
 
   // Guru materi
@@ -3484,6 +3605,227 @@ function openResetPwModal(uid){
     saveCustomUsers();
     closeModal();
     toast(`Kata sandi ${u.name} berhasil direset`,'success');
+  });
+}
+
+/* ===== Admin: Paket / Kurikulum modals ===== */
+function openAddPaketModal(){
+  openModal('Tambah Paket Baru', `
+    <form id="ap-form" class="stack" autocomplete="off">
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label>Kode paket</label>
+          <input class="input" name="id" required pattern="^[A-Z]$" maxlength="1" placeholder="cth: D" style="text-transform:uppercase"/>
+          <span class="hint">Satu huruf kapital, harus unik (A/B/C sudah dipakai).</span></div>
+        <div class="field" style="flex:2;min-width:180px"><label>Nama paket</label>
+          <input class="input" name="label" required placeholder="cth: Paket D (Setara Diploma)"/></div>
+      </div>
+      <div class="field"><label>Deskripsi</label>
+        <textarea class="textarea" name="desc" rows="3" placeholder="Setara dengan jenjang…"></textarea></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label>Warna</label>
+          <input class="input" name="color" type="color" value="#10b981"/></div>
+        <div class="field" style="flex:1;min-width:120px"><label>Estimasi jumlah siswa awal</label>
+          <input class="input" name="siswa" type="number" min="0" value="0"/></div>
+      </div>
+      <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn" id="ap-cancel">Batal</button>
+        <button type="submit" class="btn primary">Simpan paket</button>
+      </div>
+    </form>`);
+  $('#ap-cancel').addEventListener('click', closeModal);
+  $('#ap-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const id = (fd.get('id')||'').toString().toUpperCase().trim();
+    const label = (fd.get('label')||'').toString().trim();
+    if(!id || !label) return toast('Kode & nama paket wajib','error');
+    if(!/^[A-Z]$/.test(id)) return toast('Kode harus 1 huruf kapital','error');
+    if(DATA.paket.some(p => p.id===id)) return toast(`Paket ${id} sudah ada`,'error');
+    DATA.paket.push({
+      id, label, color: fd.get('color')||'#10b981',
+      desc: (fd.get('desc')||'').toString().trim(),
+      siswa: parseInt(fd.get('siswa')||0,10),
+    });
+    DATA.subjects[id] = DATA.subjects[id] || [];
+    closeModal();
+    toast(`Paket ${id} ditambahkan`,'success');
+    navigate('paket');
+  });
+}
+function openEditPaketModal(pid){
+  const p = DATA.paket.find(x => x.id===pid); if(!p) return;
+  openModal(`Edit ${p.label}`, `
+    <form id="ep-form" class="stack" autocomplete="off">
+      <div class="field"><label>Nama paket</label>
+        <input class="input" name="label" required value="${escapeHtml(p.label)}"/></div>
+      <div class="field"><label>Deskripsi</label>
+        <textarea class="textarea" name="desc" rows="3">${escapeHtml(p.desc||'')}</textarea></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label>Warna</label>
+          <input class="input" name="color" type="color" value="${escapeHtml(p.color||'#10b981')}"/></div>
+        <div class="field" style="flex:1;min-width:120px"><label>Jumlah siswa</label>
+          <input class="input" name="siswa" type="number" min="0" value="${p.siswa||0}"/></div>
+      </div>
+      <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn" id="ep-cancel">Batal</button>
+        <button type="submit" class="btn primary">Simpan perubahan</button>
+      </div>
+    </form>`);
+  $('#ep-cancel').addEventListener('click', closeModal);
+  $('#ep-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    p.label = (fd.get('label')||p.label).toString().trim();
+    p.desc  = (fd.get('desc')||'').toString().trim();
+    p.color = fd.get('color') || p.color;
+    p.siswa = parseInt(fd.get('siswa')||p.siswa,10);
+    closeModal();
+    toast(`Paket ${pid} diperbarui`,'success');
+    navigate('paket');
+  });
+}
+const SUBJECT_ICONS = ['📐','📚','🌍','🔬','💻','🎨','🎵','🏃','📖','🧪','🧮','📜','🌱','🌐','💼','🛠️','🎭','📱'];
+function openAddMapelModal(pid){
+  const p = DATA.paket.find(x => x.id===pid); if(!p) return;
+  const next = (DATA.subjects[pid]||[]).length + 1;
+  openModal(`Tambah Mapel — ${p.label}`, `
+    <form id="am-form" class="stack" autocomplete="off">
+      <div class="field"><label>Nama mata pelajaran</label>
+        <input class="input" name="name" required placeholder="cth: Matematika Wajib"/></div>
+      <div class="field"><label>Ikon</label>
+        <div class="row" id="am-icons" style="flex-wrap:wrap;gap:6px;max-width:100%">
+          ${SUBJECT_ICONS.map((ic,i)=>`
+            <label class="icon-pick" style="cursor:pointer">
+              <input type="radio" name="icon" value="${ic}" ${i===0?'checked':''} hidden/>
+              <span class="icon-tile">${ic}</span>
+            </label>`).join('')}
+        </div>
+        <span class="hint">Atau ketik manual:</span>
+        <input class="input" name="iconCustom" placeholder="cth: 🧠" style="margin-top:6px"/>
+      </div>
+      <div class="field"><label>Deskripsi</label>
+        <textarea class="textarea" name="desc" rows="2" placeholder="Singkat saja…"></textarea></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label>Urutan</label>
+          <input class="input" name="urut" type="number" min="1" value="${next}"/></div>
+        <div class="field" style="flex:1;min-width:120px"><label>Warna</label>
+          <input class="input" name="color" type="color" value="#10b981"/></div>
+      </div>
+      <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn" id="am-cancel">Batal</button>
+        <button type="submit" class="btn primary">Simpan mapel</button>
+      </div>
+    </form>`);
+  $('#am-cancel').addEventListener('click', closeModal);
+  $('#am-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = (fd.get('name')||'').toString().trim();
+    if(!name) return toast('Nama mapel wajib','error');
+    const customIc = (fd.get('iconCustom')||'').toString().trim();
+    const icon = customIc || (fd.get('icon')||'📚').toString();
+    DATA.subjects[pid] = DATA.subjects[pid] || [];
+    DATA.subjects[pid].push({
+      id: 's' + Date.now(),
+      name, icon,
+      desc: (fd.get('desc')||'').toString().trim(),
+      color: fd.get('color')||'#10b981',
+      urut: parseInt(fd.get('urut')||999,10),
+      materi: 0, kuis: 0,
+    });
+    DATA.subjects[pid].sort((a,b)=>(a.urut||999)-(b.urut||999));
+    App.expandedPaket = App.expandedPaket || {};
+    App.expandedPaket[pid] = true;
+    closeModal();
+    toast(`Mapel "${name}" ditambahkan ke ${p.label}`,'success');
+    navigate('kurikulum');
+  });
+}
+function openEditMapelModal(pid, sid){
+  const p = DATA.paket.find(x => x.id===pid);
+  const s = (DATA.subjects[pid]||[]).find(x => x.id===sid);
+  if(!p || !s) return;
+  openModal(`Edit ${s.name}`, `
+    <form id="em-form" class="stack" autocomplete="off">
+      <div class="field"><label>Nama mata pelajaran</label>
+        <input class="input" name="name" required value="${escapeHtml(s.name)}"/></div>
+      <div class="field"><label>Ikon</label>
+        <input class="input" name="icon" value="${escapeHtml(s.icon||'📚')}" maxlength="4"/>
+        <span class="hint">Boleh emoji, satu karakter. Saat ini: <span style="font-size:1.4rem">${escapeHtml(s.icon||'📚')}</span></span></div>
+      <div class="field"><label>Deskripsi</label>
+        <textarea class="textarea" name="desc" rows="2">${escapeHtml(s.desc||'')}</textarea></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label>Urutan</label>
+          <input class="input" name="urut" type="number" min="1" value="${s.urut||1}"/></div>
+        <div class="field" style="flex:1;min-width:120px"><label>Warna</label>
+          <input class="input" name="color" type="color" value="${escapeHtml(s.color||'#10b981')}"/></div>
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap;font-size:.85rem;color:var(--text-muted)">
+        <div>Statistik: <b>${s.materi||0}</b> materi · <b>${s.kuis||0}</b> kuis</div>
+      </div>
+      <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
+        <button type="button" class="btn" id="em-cancel">Batal</button>
+        <button type="submit" class="btn primary">Simpan perubahan</button>
+      </div>
+    </form>`);
+  $('#em-cancel').addEventListener('click', closeModal);
+  $('#em-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    s.name  = (fd.get('name')||s.name).toString().trim();
+    s.icon  = (fd.get('icon')||s.icon).toString().trim() || s.icon;
+    s.desc  = (fd.get('desc')||'').toString().trim();
+    s.urut  = parseInt(fd.get('urut')||s.urut,10);
+    s.color = fd.get('color') || s.color;
+    DATA.subjects[pid].sort((a,b)=>(a.urut||999)-(b.urut||999));
+    closeModal();
+    toast(`Mapel "${s.name}" diperbarui`,'success');
+    navigate('kurikulum');
+  });
+}
+function openSubjectDetail(pid, sid, focusTab='materi'){
+  const p = DATA.paket.find(x => x.id===pid);
+  const s = (DATA.subjects[pid]||[]).find(x => x.id===sid);
+  if(!p || !s) return;
+  // sample related items (in real backend this would query)
+  const sampleMateri = Array.from({length:Math.min(s.materi||0,5)}, (_,i)=>({
+    id:`m_${pid}_${sid}_${i+1}`, title:`${s.name} — Bab ${i+1}`, durasi:`${10+i*5} menit`,
+  }));
+  const sampleKuis = Array.from({length:Math.min(s.kuis||0,5)}, (_,i)=>({
+    id:`k_${pid}_${sid}_${i+1}`, title:`Kuis ${s.name} #${i+1}`, soal:5+i,
+  }));
+  openModal(`${s.icon||''} ${s.name}`, `
+    <p class="muted" style="margin-top:0">${escapeHtml(p.label)}${s.desc?` · ${escapeHtml(s.desc)}`:''}</p>
+    <div class="tabs" role="tablist" style="display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:10px">
+      <button type="button" class="btn sm ${focusTab==='materi'?'primary':''}" id="sd-tab-materi" role="tab" aria-selected="${focusTab==='materi'}">📚 Materi (${s.materi||0})</button>
+      <button type="button" class="btn sm ${focusTab==='kuis'?'primary':''}" id="sd-tab-kuis" role="tab" aria-selected="${focusTab==='kuis'}">📝 Kuis (${s.kuis||0})</button>
+    </div>
+    <div id="sd-content">
+      ${focusTab==='materi'
+        ? (sampleMateri.length===0
+            ? `<div class="empty-state"><h4>Belum ada materi</h4><p>Tambahkan materi untuk mapel ini.</p></div>`
+            : `<div class="stack" style="gap:6px">${sampleMateri.map(m=>`
+                <div class="materi-item"><div class="ico">📄</div>
+                  <div class="info"><h5>${escapeHtml(m.title)}</h5><p>${escapeHtml(m.durasi)}</p></div>
+                </div>`).join('')}</div>`)
+        : (sampleKuis.length===0
+            ? `<div class="empty-state"><h4>Belum ada kuis</h4><p>Tambahkan kuis untuk mapel ini.</p></div>`
+            : `<div class="stack" style="gap:6px">${sampleKuis.map(k=>`
+                <div class="materi-item"><div class="ico">📝</div>
+                  <div class="info"><h5>${escapeHtml(k.title)}</h5><p>${k.soal} soal</p></div>
+                </div>`).join('')}</div>`)
+      }
+    </div>
+    <div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px">
+      <button type="button" class="btn" id="sd-edit">✎ Edit mapel</button>
+      <button type="button" class="btn primary" id="sd-add">+ Tambah ${focusTab==='materi'?'materi':'kuis'}</button>
+    </div>`);
+  const re = (tab) => openSubjectDetail(pid, sid, tab);
+  $('#sd-tab-materi').addEventListener('click', ()=>re('materi'));
+  $('#sd-tab-kuis').addEventListener('click', ()=>re('kuis'));
+  $('#sd-edit').addEventListener('click', ()=>{ closeModal(); openEditMapelModal(pid, sid); });
+  $('#sd-add').addEventListener('click', ()=>{
+    toast(`Form tambah ${focusTab} dapat diakses dari dashboard guru.`,'info');
   });
 }
 
