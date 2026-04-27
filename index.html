@@ -631,8 +631,9 @@
         </div>
       </fieldset>
       <div class="field">
-        <label for="login-email">Email atau NIS</label>
-        <input id="login-email" name="email" class="input" type="text" autocomplete="username" required placeholder="email atau NIS" />
+        <label for="login-email">ID Akun</label>
+        <input id="login-email" name="email" class="input" type="text" autocomplete="username" required placeholder="cth: SIS-7G2K9X" />
+        <span class="hint">Siswa pakai ID akun. Admin pakai email.</span>
       </div>
       <div class="field" style="margin-top:10px">
         <label for="login-password">Kata sandi</label>
@@ -764,19 +765,11 @@ const closeModal = () => { const m=$('#modal'); m.hidden=true; m.classList.remov
 
 /* ===== Dummy data ===== */
 const DATA = {
+  // Hanya akun admin yang dibawakan secara default. Akun siswa & guru
+  // didaftarkan manual oleh admin lewat dashboard "Manajemen Pengguna".
   users: [
-    { id:'u1', name:'Siti Nurhaliza', email:'siti@mugisae.id', password:'demo123', role:'siswa',
-      paket:'C', kelas:'XII-IPS', usia:24, kota:'Bandung', joined:'2025-08-12', avatar:'SN', telp:'0812-3456-7890' },
-    { id:'u2', name:'Budi Santoso',  email:'budi@mugisae.id', password:'demo123', role:'guru',
-      mapel:['Matematika','Fisika'], paket:['B','C'], joined:'2024-02-01', avatar:'BS' },
-    { id:'u3', name:'Admin Utama',   email:'admin@mugisae.id', password:'demo123', role:'admin',
+    { id:'u-admin', name:'Admin Utama', email:'admin@mugisae.id', password:'demo123', role:'admin',
       avatar:'AU' },
-    { id:'u4', name:'Rahmat Hidayat', email:'rahmat@mugisae.id', password:'demo123', role:'siswa',
-      paket:'B', kelas:'IX', usia:18, kota:'Surabaya', joined:'2025-09-10', avatar:'RH' },
-    { id:'u5', name:'Dewi Lestari',  email:'dewi@mugisae.id',  password:'demo123', role:'siswa',
-      paket:'A', kelas:'VI', usia:16, kota:'Yogyakarta', joined:'2025-07-04', avatar:'DL' },
-    { id:'u6', name:'Sari Wahyuni',  email:'sari@mugisae.id',  password:'demo123', role:'guru',
-      mapel:['Bahasa Indonesia','Bahasa Inggris'], paket:['A','B','C'], joined:'2023-08-15', avatar:'SW' },
   ],
   paket: [
     { id:'A', label:'Paket A (Setara SD)', desc:'Untuk warga belajar yang ingin menyelesaikan jenjang pendidikan dasar.', siswa:248, color:'#10b981' },
@@ -1175,7 +1168,7 @@ function viewSiswaDashboard(){
       <div>
         <p class="muted" style="margin:0">${greet}, warga belajar 👋</p>
         <h1>Halo, <span class="grad">${escapeHtml(u.name.split(' ')[0])}</span>!</h1>
-        <p>${escapeHtml(u.kelas||'')} · Paket ${u.paket} · Bergabung ${fmtDate(u.joined)}</p>
+        <p>${escapeHtml(u.kelas||'-')} · Paket ${u.paket}${u.desa?` · Desa ${escapeHtml(u.desa)}`:''} · Bergabung ${fmtDate(u.joined)}</p>
       </div>
       <div class="row">
         <span class="badge ok">${overall}% selesai</span>
@@ -1580,7 +1573,7 @@ function viewProfil(){
           <div class="avatar" style="width:64px;height:64px;font-size:1.3rem">${initials(u.name)}</div>
           <div>
             <h3 style="margin:0">${escapeHtml(u.name)}</h3>
-            <p class="muted" style="margin:2px 0">${escapeHtml(u.email)}</p>
+            <p class="muted" style="margin:2px 0">${escapeHtml(u.nis||u.email||'')}</p>
             <span class="badge">${escapeHtml(u.role[0].toUpperCase()+u.role.slice(1))}</span>
             ${u.paket?`<span class="badge info">Paket ${u.paket}</span>`:''}
           </div>
@@ -1590,11 +1583,14 @@ function viewProfil(){
         <h3>Data pribadi</h3>
         <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
           <div class="field"><label>Nama lengkap</label><input class="input" value="${escapeHtml(u.name)}" id="p-name"/></div>
-          <div class="field"><label>Email</label><input class="input" value="${escapeHtml(u.email)}" id="p-email"/></div>
+          ${u.email?`<div class="field"><label>Email</label><input class="input" value="${escapeHtml(u.email)}" id="p-email"/></div>`:''}
+          ${u.nis?`<div class="field"><label>ID Akun</label><input class="input" value="${escapeHtml(u.nis)}" readonly/></div>`:''}
           ${u.role==='siswa'?`
-            <div class="field"><label>Kota</label><input class="input" value="${escapeHtml(u.kota||'')}" id="p-kota"/></div>
+            <div class="field"><label>Nama desa</label><input class="input" value="${escapeHtml(u.desa||'')}" id="p-desa"/></div>
+            <div class="field"><label>Kecamatan</label><input class="input" value="${escapeHtml(u.kecamatan||'')}" id="p-kecamatan"/></div>
+            <div class="field"><label>Kota / Kabupaten</label><input class="input" value="${escapeHtml(u.kota||'')}" id="p-kota"/></div>
             <div class="field"><label>Usia</label><input class="input" type="number" value="${u.usia||''}" id="p-usia"/></div>
-            <div class="field"><label>Telepon</label><input class="input" value="${escapeHtml(u.telp||'')}" id="p-telp"/></div>`:''}
+            <div class="field"><label>No. HP</label><input class="input" value="${escapeHtml(u.hp||u.telp||'')}" id="p-telp"/></div>`:''}
         </div>
         <div class="row" style="margin-top:14px">
           <button class="btn primary" id="p-save">Simpan perubahan</button>
@@ -1846,21 +1842,23 @@ function viewAdminPengguna(){
       <select class="select" id="filter-role" style="max-width:200px">
         <option value="all">Semua peran</option><option>siswa</option><option>guru</option><option>admin</option>
       </select>
-      <input class="input" id="search-user" placeholder="Cari nama atau email…" style="max-width:280px"/>
+      <input class="input" id="search-user" placeholder="Cari nama, ID, atau desa…" style="max-width:280px"/>
     </div>
     <div class="table-wrap">
       <table id="user-table">
-        <thead><tr><th>Nama</th><th>Email / NIS</th><th>Peran</th><th>Paket</th><th>Bergabung</th><th>Status</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Nama</th><th>ID / Login</th><th>Peran</th><th>Paket</th><th>Desa</th><th>Bergabung</th><th>Aksi</th></tr></thead>
         <tbody>
           ${all.map(u=>{
             const isCustom = !seedIds.has(u.id);
+            const loginId = u.nis || u.email || '-';
+            const wilayah = [u.desa, u.kecamatan, u.kota].filter(x=>x && x!=='-').join(', ');
             return `<tr>
             <td>${escapeHtml(u.name)}</td>
-            <td>${escapeHtml(u.email)}${u.nis?`<br><small class="muted">NIS: ${escapeHtml(u.nis)}</small>`:''}</td>
+            <td><code style="font-size:.82rem">${escapeHtml(loginId)}</code></td>
             <td><span class="badge ${u.role==='admin'?'danger':u.role==='guru'?'info':'ok'}">${u.role}</span></td>
             <td>${u.paket?(Array.isArray(u.paket)?u.paket.join(', '):u.paket):'-'}</td>
+            <td>${escapeHtml(wilayah || '-')}</td>
             <td>${fmtDate(u.joined||'2025-01-01')}</td>
-            <td><span class="badge ok">Aktif</span>${isCustom?' <span class="badge info">Baru</span>':''}</td>
             <td>${isCustom?`<button class="btn sm danger" data-del-user="${escapeHtml(u.id)}">Hapus</button>`:'<span class="muted" style="font-size:.82rem">Bawaan</span>'}</td>
           </tr>`;
           }).join('')}
@@ -2041,10 +2039,13 @@ function bindViewActions(){
   // Profile
   const ps = $('#p-save'); if(ps) ps.addEventListener('click', ()=>{
     App.user.name = $('#p-name').value || App.user.name;
-    App.user.email = $('#p-email').value || App.user.email;
+    if($('#p-email')) App.user.email = $('#p-email').value || App.user.email;
+    if($('#p-desa')) App.user.desa = $('#p-desa').value;
+    if($('#p-kecamatan')) App.user.kecamatan = $('#p-kecamatan').value;
     if($('#p-kota')) App.user.kota = $('#p-kota').value;
     if($('#p-usia')) App.user.usia = +$('#p-usia').value;
-    if($('#p-telp')) App.user.telp = $('#p-telp').value;
+    if($('#p-telp')) App.user.hp = $('#p-telp').value;
+    saveCustomUsers();
     $('#avatar-initial').textContent = initials(App.user.name);
     toast('Profil diperbarui','success');
   });
@@ -2357,15 +2358,17 @@ function bindAuth(){
 }
 
 /* ===== Admin: Add Siswa modal ===== */
-function generateNIS(){
-  // PKBM-yyyy-NNN
-  const year = new Date().getFullYear();
-  const nums = DATA.users
-    .map(u => (u.nis||'').match(/^PKBM-\d{4}-(\d{3})$/))
-    .filter(Boolean)
-    .map(m => parseInt(m[1],10));
-  const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `PKBM-${year}-${String(next).padStart(3,'0')}`;
+// ID acak siswa: SIS-XXXXXX (6 karakter alfanumerik tanpa karakter ambigu)
+function generateSiswaId(){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // skip I, O, 0, 1
+  const pick = () => alphabet[Math.floor(Math.random()*alphabet.length)];
+  for(let attempt=0; attempt<50; attempt++){
+    let code = 'SIS-';
+    for(let i=0;i<6;i++) code += pick();
+    if(!DATA.users.some(u => (u.nis||'').toUpperCase() === code)) return code;
+  }
+  // Fallback: append timestamp slice
+  return 'SIS-' + Date.now().toString(36).toUpperCase().slice(-6);
 }
 function generatePassword(){
   const s = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -2374,41 +2377,50 @@ function generatePassword(){
   return out;
 }
 function openAddSiswaModal(){
-  const suggestedNIS = generateNIS();
+  const suggestedId = generateSiswaId();
   const suggestedPW = generatePassword();
   openModal('Tambah Akun Siswa', `
     <form id="add-siswa-form" class="stack" autocomplete="off">
       <div class="field"><label for="as-name">Nama lengkap</label>
         <input class="input" id="as-name" name="name" required placeholder="cth: Andi Prasetya"/></div>
-      <div class="field"><label for="as-email">Email</label>
-        <input class="input" id="as-email" name="email" type="email" required placeholder="andi@mugisae.id"/>
-        <span class="hint">Dipakai untuk login. Harus unik.</span></div>
+      <div class="field"><label for="as-id">ID Akun Siswa</label>
+        <div class="input-group">
+          <input class="input" id="as-id" name="nis" required value="${escapeHtml(suggestedId)}" pattern="^[A-Za-z0-9\\-]+$" maxlength="20"/>
+          <button type="button" class="toggle" id="as-regen-id" aria-label="Acak ulang ID" title="Acak ulang ID">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 19 4.51L23 8"/></svg>
+          </button>
+        </div>
+        <span class="hint">ID ini dipakai siswa untuk login (pengganti email). Harus unik.</span></div>
       <div class="row" style="gap:10px;flex-wrap:wrap">
-        <div class="field" style="flex:1;min-width:140px"><label for="as-nis">NIS</label>
-          <input class="input" id="as-nis" name="nis" required value="${escapeHtml(suggestedNIS)}"/></div>
         <div class="field" style="flex:1;min-width:140px"><label for="as-paket">Paket</label>
           <select class="select" id="as-paket" name="paket" required>
             ${DATA.paket.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join('')}
           </select></div>
-      </div>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
         <div class="field" style="flex:1;min-width:140px"><label for="as-kelas">Kelas / Rombel</label>
           <input class="input" id="as-kelas" name="kelas" placeholder="cth: X-IPS / Setara SMA Kelas 11"/></div>
-        <div class="field" style="flex:1;min-width:140px"><label for="as-usia">Usia</label>
-          <input class="input" id="as-usia" name="usia" type="number" min="13" max="80" placeholder="cth: 18"/></div>
       </div>
-      <div class="field"><label for="as-kota">Kota</label>
-        <input class="input" id="as-kota" name="kota" placeholder="cth: Bandung"/></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:120px"><label for="as-usia">Usia</label>
+          <input class="input" id="as-usia" name="usia" type="number" min="13" max="80" placeholder="cth: 18"/></div>
+        <div class="field" style="flex:2;min-width:160px"><label for="as-desa">Nama desa</label>
+          <input class="input" id="as-desa" name="desa" required placeholder="cth: Cibeureum"/></div>
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:140px"><label for="as-kecamatan">Kecamatan <span class="muted">(opsional)</span></label>
+          <input class="input" id="as-kecamatan" name="kecamatan" placeholder="cth: Kertasari"/></div>
+        <div class="field" style="flex:1;min-width:140px"><label for="as-kota">Kota / Kabupaten</label>
+          <input class="input" id="as-kota" name="kota" placeholder="cth: Bandung"/></div>
+      </div>
       <div class="field"><label for="as-hp">No. HP wali / siswa <span class="muted">(opsional)</span></label>
         <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>
       <div class="field"><label for="as-pw">Kata sandi awal</label>
         <div class="input-group">
           <input class="input" id="as-pw" name="pw" type="text" required minlength="6" value="${escapeHtml(suggestedPW)}"/>
-          <button type="button" class="toggle" id="as-regen-pw" aria-label="Acak ulang sandi" title="Acak ulang">
+          <button type="button" class="toggle" id="as-regen-pw" aria-label="Acak ulang sandi" title="Acak ulang sandi">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 19 4.51L23 8"/></svg>
           </button>
         </div>
-        <span class="hint">Catat sandi ini & berikan ke siswa. Min. 6 karakter.</span></div>
+        <span class="hint">Catat ID & sandi, lalu serahkan ke siswa. Sandi minimal 6 karakter.</span></div>
       <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
         <button type="button" class="btn" id="as-cancel">Batal</button>
         <button type="submit" class="btn primary">Simpan akun siswa</button>
@@ -2416,39 +2428,44 @@ function openAddSiswaModal(){
     </form>
   `);
   $('#as-cancel').addEventListener('click', closeModal);
+  $('#as-regen-id').addEventListener('click', ()=>{ $('#as-id').value = generateSiswaId(); });
   $('#as-regen-pw').addEventListener('click', ()=>{ $('#as-pw').value = generatePassword(); });
   $('#add-siswa-form').addEventListener('submit', e => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const name = (fd.get('name')||'').toString().trim();
-    const email = (fd.get('email')||'').toString().trim();
-    const nis = (fd.get('nis')||'').toString().trim();
+    const nis = (fd.get('nis')||'').toString().trim().toUpperCase();
     const paket = (fd.get('paket')||'').toString();
     const kelas = (fd.get('kelas')||'').toString().trim() || '-';
     const usia = parseInt((fd.get('usia')||'').toString(),10) || null;
+    const desa = (fd.get('desa')||'').toString().trim();
+    const kecamatan = (fd.get('kecamatan')||'').toString().trim();
     const kota = (fd.get('kota')||'').toString().trim() || '-';
     const hp = (fd.get('hp')||'').toString().trim();
     const pw = (fd.get('pw')||'').toString();
 
-    if(!name || !email || !nis || !paket || !pw){
-      return toast('Lengkapi field wajib','error');
+    if(!name || !nis || !paket || !desa || !pw){
+      return toast('Lengkapi field wajib (nama, ID, paket, desa, sandi)','error');
+    }
+    if(!/^[A-Z0-9\-]+$/.test(nis)){
+      return toast('ID hanya boleh huruf, angka, dan tanda hubung','error');
     }
     if(pw.length < 6) return toast('Sandi minimal 6 karakter','error');
-    if(DATA.users.some(u => u.email.toLowerCase()===email.toLowerCase())){
-      return toast('Email sudah dipakai akun lain','error');
-    }
-    if(DATA.users.some(u => (u.nis||'').toLowerCase()===nis.toLowerCase())){
-      return toast('NIS sudah dipakai akun lain','error');
+    if(DATA.users.some(u => (u.nis||'').toUpperCase()===nis || (u.email||'').toUpperCase()===nis)){
+      return toast('ID sudah dipakai akun lain','error');
     }
 
     const u = {
       id: 'u' + Date.now(),
-      name, email, nis,
+      name,
+      nis,
       password: pw,
       role: 'siswa',
       paket,
       kelas,
       usia,
+      desa,
+      kecamatan,
       kota,
       hp,
       joined: new Date().toISOString().slice(0,10),
@@ -2457,10 +2474,9 @@ function openAddSiswaModal(){
     DATA.users.push(u);
     saveCustomUsers();
     closeModal();
-    toast(`Akun siswa "${name}" berhasil dibuat`,'success');
+    toast(`Akun siswa "${name}" berhasil dibuat — ID: ${nis}`,'success');
     navigate(App.view);
   });
-  // Focus first field
   setTimeout(()=>{ const el=$('#as-name'); if(el) el.focus(); }, 50);
 }
 
