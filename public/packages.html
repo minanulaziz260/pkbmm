@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen Paket — PKBM MUGI SAE</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="container">
+  <div class="row" style="justify-content:space-between;margin-bottom:14px">
+    <div>
+      <h1 style="margin:0">Manajemen Paket</h1>
+      <p class="muted">Kode paket A/B/C atau lainnya. Setiap paket memiliki kurikulum sendiri.</p>
+    </div>
+    <button class="btn primary" id="add-pkg-btn">+ Tambah Paket</button>
+  </div>
+
+  <div class="grid cols-2" id="pkg-grid"></div>
+</main>
+
+<script src="/app.js"></script>
+<script>
+  const { Auth, api, toast, openModal, closeModal, escapeHtml, renderHeader } = window.PKBM;
+  Auth.requireRoleOrRedirect('admin', '/dashboard.html');
+  renderHeader('packages');
+
+  async function load() {
+    const r = await api('GET', '/api/packages');
+    const grid = document.getElementById('pkg-grid');
+    if (r.packages.length === 0) {
+      grid.innerHTML = `<p class="muted">Belum ada paket. Klik "+ Tambah Paket" untuk membuat.</p>`;
+      return;
+    }
+    grid.innerHTML = r.packages.map(p => `
+      <div class="card" style="border-left:4px solid ${escapeHtml(p.color || '#10b981')}">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <h3 style="margin:0">Paket ${escapeHtml(p.code)}</h3>
+            <p class="muted" style="margin:4px 0">${escapeHtml(p.label)}</p>
+          </div>
+          <div class="row" style="gap:6px">
+            <button class="btn ghost" data-edit="${escapeHtml(p.code)}">✎ Edit</button>
+            <button class="btn ghost" data-del="${escapeHtml(p.code)}" style="color:var(--danger)">🗑</button>
+          </div>
+        </div>
+        <p style="margin:6px 0 12px">${escapeHtml(p.description || '-')}</p>
+        <div class="row" style="gap:10px">
+          <span class="badge primary">${p.student_count} siswa</span>
+          <span class="badge">${p.subject_count} mapel</span>
+          <a class="btn ghost" href="/curriculum.html?package=${encodeURIComponent(p.code)}">Atur kurikulum →</a>
+        </div>
+      </div>`).join('');
+    grid.querySelectorAll('[data-edit]').forEach(b =>
+      b.addEventListener('click', () => openEditModal(b.dataset.edit)));
+    grid.querySelectorAll('[data-del]').forEach(b =>
+      b.addEventListener('click', () => onDelete(b.dataset.del)));
+  }
+
+  function openEditModal(code) {
+    api('GET', '/api/packages/' + code).then(r => {
+      const p = r.package;
+      openModal(`Edit Paket ${code}`, `
+        <form id="pkg-form" class="stack">
+          <div class="field"><label>Nama paket</label>
+            <input class="input" name="label" value="${escapeHtml(p.label)}" required /></div>
+          <div class="field"><label>Deskripsi</label>
+            <textarea class="textarea" name="description">${escapeHtml(p.description || '')}</textarea></div>
+          <div class="field"><label>Warna</label>
+            <input class="input" name="color" type="color" value="${escapeHtml(p.color || '#10b981')}" /></div>
+          <div class="row" style="justify-content:flex-end">
+            <button type="button" class="btn" id="cancel-pkg">Batal</button>
+            <button class="btn primary">Simpan</button>
+          </div>
+        </form>`);
+      document.getElementById('cancel-pkg').addEventListener('click', closeModal);
+      document.getElementById('pkg-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        try {
+          await api('PUT', '/api/packages/' + code, {
+            label: fd.get('label'),
+            description: fd.get('description'),
+            color: fd.get('color'),
+          });
+          closeModal(); toast('Paket disimpan', 'success'); load();
+        } catch (err) { toast(err.message, 'error'); }
+      });
+    });
+  }
+
+  function openAddModal() {
+    openModal('Tambah Paket', `
+      <form id="pkg-form" class="stack">
+        <div class="field"><label>Kode paket (1 huruf)</label>
+          <input class="input" name="code" maxlength="1" required pattern="[A-Za-z]" placeholder="A" /></div>
+        <div class="field"><label>Nama paket</label>
+          <input class="input" name="label" required placeholder="Paket A (Setara SD)" /></div>
+        <div class="field"><label>Deskripsi</label>
+          <textarea class="textarea" name="description"></textarea></div>
+        <div class="field"><label>Warna</label>
+          <input class="input" name="color" type="color" value="#10b981" /></div>
+        <div class="row" style="justify-content:flex-end">
+          <button type="button" class="btn" id="cancel-pkg">Batal</button>
+          <button class="btn primary">Simpan</button>
+        </div>
+      </form>`);
+    document.getElementById('cancel-pkg').addEventListener('click', closeModal);
+    document.getElementById('pkg-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try {
+        await api('POST', '/api/packages', {
+          code: fd.get('code'),
+          label: fd.get('label'),
+          description: fd.get('description'),
+          color: fd.get('color'),
+        });
+        closeModal(); toast('Paket dibuat', 'success'); load();
+      } catch (err) { toast(err.message, 'error'); }
+    });
+  }
+
+  async function onDelete(code) {
+    if (!confirm(`Hapus paket ${code}? Mapel & materi di paket ini akan ikut terhapus.`)) return;
+    try {
+      await api('DELETE', '/api/packages/' + code);
+      toast('Paket dihapus', 'info'); load();
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  document.getElementById('add-pkg-btn').addEventListener('click', openAddModal);
+  load();
+</script>
+</body>
+</html>

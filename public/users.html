@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen Pengguna — PKBM MUGI SAE</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="container">
+  <div class="row" style="justify-content:space-between;margin-bottom:14px">
+    <div>
+      <h1 style="margin:0">Manajemen Pengguna</h1>
+      <p class="muted" id="user-count">Memuat…</p>
+    </div>
+    <button class="btn primary" id="add-user-btn">+ Tambah Pengguna</button>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="row">
+      <div class="field" style="flex:1;min-width:160px">
+        <label>Filter peran</label>
+        <select id="filter-role">
+          <option value="">Semua peran</option>
+          <option value="siswa">Siswa</option>
+          <option value="guru">Guru</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1;min-width:160px">
+        <label>Filter paket</label>
+        <select id="filter-paket">
+          <option value="">Semua paket</option>
+        </select>
+      </div>
+      <div class="field" style="flex:2;min-width:200px">
+        <label>Cari</label>
+        <input class="input" id="search" placeholder="Nama, ID, email, desa…" />
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Nama</th><th>ID / Login</th><th>Peran</th><th>Paket</th>
+        <th>Desa</th><th>Bergabung</th><th>Status</th><th>Aksi</th>
+      </tr></thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="/app.js"></script>
+<script>
+  const { Auth, api, toast, openModal, closeModal, escapeHtml, fmtDate, renderHeader } = window.PKBM;
+  Auth.requireRoleOrRedirect('admin', '/dashboard.html');
+  renderHeader('users');
+
+  let CACHED = [];
+
+  async function loadPackages() {
+    try {
+      const r = await api('GET', '/api/packages');
+      const sel = document.getElementById('filter-paket');
+      r.packages.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.code; o.textContent = `Paket ${p.code}`;
+        sel.appendChild(o);
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  async function loadUsers() {
+    const role  = document.getElementById('filter-role').value;
+    const paket = document.getElementById('filter-paket').value;
+    const q     = document.getElementById('search').value.trim();
+    const qs = new URLSearchParams();
+    if (role)  qs.set('role',  role);
+    if (paket) qs.set('paket', paket);
+    if (q)     qs.set('q',     q);
+    const data = await api('GET', '/api/users?' + qs.toString());
+    CACHED = data.users;
+    document.getElementById('user-count').textContent =
+      `${data.count} akun · ${data.users.filter(u=>u.role==='siswa').length} siswa · ${data.users.filter(u=>u.role==='guru').length} guru`;
+    const tbody = document.getElementById('users-tbody');
+    if (data.users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada akun. Klik "+ Tambah Pengguna" untuk membuat akun baru.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.users.map(u => {
+      const paketTxt = Array.isArray(u.paket) ? u.paket.join(', ') : (u.paket || '-');
+      return `<tr>
+        <td><b>${escapeHtml(u.name)}</b></td>
+        <td><code class="id">${escapeHtml(u.user_id)}</code>${u.email ? `<div class="muted" style="font-size:.78rem">${escapeHtml(u.email)}</div>` : ''}</td>
+        <td><span class="badge primary">${escapeHtml(u.role)}</span></td>
+        <td>${escapeHtml(paketTxt)}</td>
+        <td>${escapeHtml(u.desa || '-')}</td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td>${u.is_active ? '<span class="badge ok">Aktif</span>' : '<span class="badge warn">Nonaktif</span>'}</td>
+        <td>
+          <div class="row" style="gap:6px">
+            <button class="btn ghost" data-act="reset" data-id="${u.id}" title="Reset password">↺</button>
+            ${u.is_seed
+              ? '<span class="badge">Bawaan</span>'
+              : `<button class="btn ghost" data-act="delete" data-id="${u.id}" title="Hapus" style="color:var(--danger)">🗑</button>`}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-act="delete"]').forEach(b =>
+      b.addEventListener('click', () => onDelete(parseInt(b.dataset.id, 10))));
+    tbody.querySelectorAll('[data-act="reset"]').forEach(b =>
+      b.addEventListener('click', () => onReset(parseInt(b.dataset.id, 10))));
+  }
+
+  async function onDelete(id) {
+    const u = CACHED.find(x => x.id === id);
+    if (!u) return;
+    if (!confirm(`Hapus akun "${u.name}" (${u.user_id})? Tindakan ini permanen.`)) return;
+    try {
+      await api('DELETE', '/api/users/' + id);
+      toast('Akun dihapus', 'info');
+      loadUsers();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function onReset(id) {
+    const u = CACHED.find(x => x.id === id);
+    if (!u) return;
+    if (!confirm(`Reset password untuk "${u.name}"? Password lama akan dibatalkan.`)) return;
+    try {
+      const r = await api('POST', `/api/users/${id}/reset-password`);
+      showAccountModal({
+        title: 'Password Direset ✅',
+        name: u.name, role: u.role, paket: u.paket, id: u.user_id, password: r.plain_password,
+      });
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  /* ===== Add user modal ===== */
+  function buildAddForm(role) {
+    const isSiswa = role === 'siswa';
+    const isGuru  = role === 'guru';
+    const isAdmin = role === 'admin';
+    return `
+      <form id="add-user-form" class="stack" autocomplete="off">
+        <div class="field">
+          <label>Peran</label>
+          <select id="f-role" name="role">
+            <option value="siswa" ${isSiswa?'selected':''}>Siswa</option>
+            <option value="guru"  ${isGuru?'selected':''}>Guru / Tutor</option>
+            <option value="admin" ${isAdmin?'selected':''}>Admin</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nama lengkap</label>
+          <input class="input" name="name" required placeholder="cth: Andi Prasetya" />
+        </div>
+        ${(isAdmin || isGuru) ? `
+          <div class="field">
+            <label>Email${isAdmin ? ' (wajib)' : ' (opsional)'}</label>
+            <input class="input" type="email" name="email" ${isAdmin?'required':''} placeholder="nama@email.com" />
+          </div>` : ''}
+        ${isSiswa ? `
+          <div class="row">
+            <div class="field" style="flex:1">
+              <label>Paket</label>
+              <select name="paket" required>
+                <option value="A">Paket A</option>
+                <option value="B">Paket B</option>
+                <option value="C">Paket C</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1">
+              <label>Kelas / Rombel</label>
+              <input class="input" name="kelas" placeholder="cth: Setara SMA 11" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1"><label>Usia</label>
+              <input class="input" type="number" name="usia" min="6" max="80" /></div>
+            <div class="field" style="flex:2"><label>Nama desa (wajib)</label>
+              <input class="input" name="desa" required placeholder="cth: Cibeureum" /></div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1"><label>Kecamatan</label>
+              <input class="input" name="kecamatan" /></div>
+            <div class="field" style="flex:1"><label>Kota / Kab.</label>
+              <input class="input" name="kota" /></div>
+          </div>` : ''}
+        ${isGuru ? `
+          <div class="field">
+            <label>Paket yang diampu (boleh lebih dari satu)</label>
+            <div class="row">
+              <label class="badge"><input type="checkbox" name="paket" value="A" /> Paket A</label>
+              <label class="badge"><input type="checkbox" name="paket" value="B" /> Paket B</label>
+              <label class="badge"><input type="checkbox" name="paket" value="C" /> Paket C</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Mata pelajaran</label>
+            <input class="input" name="mapel" placeholder="cth: Matematika, Bahasa Inggris" />
+          </div>` : ''}
+        <div class="field">
+          <label>No. HP (opsional)</label>
+          <input class="input" name="hp" type="tel" placeholder="08xxxxxxxxxx" />
+        </div>
+        <p class="help">Sistem akan generate ID akun (format YYYY-XXXXXX) dan password 8 karakter otomatis. Tampilkan ke pengguna setelah simpan.</p>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn" type="button" id="cancel-add">Batal</button>
+          <button class="btn primary" type="submit" id="save-user">Simpan akun</button>
+        </div>
+      </form>`;
+  }
+
+  function openAddModal() {
+    openModal('Tambah Akun Pengguna', buildAddForm('siswa'));
+    wireAddForm();
+  }
+
+  function wireAddForm() {
+    document.getElementById('cancel-add').addEventListener('click', closeModal);
+    document.getElementById('f-role').addEventListener('change', (e) => {
+      const role = e.target.value;
+      document.getElementById('modal-body').innerHTML = buildAddForm(role);
+      wireAddForm();
+    });
+    document.getElementById('add-user-form').addEventListener('submit', onSubmitAddUser);
+  }
+
+  async function onSubmitAddUser(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const role = fd.get('role');
+    const body = {
+      role,
+      name: (fd.get('name') || '').toString().trim(),
+      email: (fd.get('email') || '').toString().trim() || undefined,
+      hp: (fd.get('hp') || '').toString().trim() || undefined,
+    };
+    if (role === 'siswa') {
+      body.paket     = fd.get('paket');
+      body.kelas     = fd.get('kelas') || undefined;
+      body.usia      = fd.get('usia')  || undefined;
+      body.desa      = fd.get('desa');
+      body.kecamatan = fd.get('kecamatan') || undefined;
+      body.kota      = fd.get('kota')      || undefined;
+    } else if (role === 'guru') {
+      body.paket = fd.getAll('paket');
+      body.mapel = fd.get('mapel') || undefined;
+    }
+    const btn = document.getElementById('save-user');
+    btn.classList.add('is-loading'); btn.disabled = true;
+    try {
+      const r = await api('POST', '/api/users', body);
+      showAccountModal({
+        title: 'Akun Berhasil Dibuat! ✅',
+        name: r.user.name, role: r.user.role, paket: r.user.paket, id: r.user.user_id,
+        password: r.plain_password,
+      });
+      loadUsers();
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.classList.remove('is-loading'); btn.disabled = false;
+    }
+  }
+
+  function showAccountModal({ title, name, role, paket, id, password }) {
+    const paketTxt = Array.isArray(paket) ? paket.join(', ') : (paket || '-');
+    const allText =
+`================================
+Nama    : ${name}
+Peran   : ${role}
+Paket   : ${paketTxt}
+ID      : ${id}
+Password: ${password}
+================================`;
+    openModal(title, `
+      <div class="stack" style="gap:14px">
+        <div class="acc-box">
+          <div class="acc-row"><span class="acc-k">Nama Lengkap</span><span class="acc-v">${escapeHtml(name)}</span></div>
+          <div class="acc-row"><span class="acc-k">Peran</span><span class="acc-v">${escapeHtml(role)}</span></div>
+          <div class="acc-row"><span class="acc-k">Paket</span><span class="acc-v">${escapeHtml(paketTxt)}</span></div>
+          <div class="acc-row"><span class="acc-k">ID Pengguna</span><span class="acc-v acc-mono">${escapeHtml(id)}</span></div>
+          <div class="acc-row"><span class="acc-k">Password</span><span class="acc-v acc-mono acc-pw">${escapeHtml(password)}</span></div>
+        </div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="btn primary" type="button" id="copy-all">📋 Salin Semua</button>
+          <button class="btn" type="button" id="copy-id">Salin ID</button>
+          <button class="btn" type="button" id="copy-pw">Salin Password</button>
+          <button class="btn ghost" type="button" id="acc-close" style="margin-left:auto">Tutup</button>
+        </div>
+        <p class="acc-warn">⚠️ Simpan ID dan password ini sekarang. Password tidak akan ditampilkan lagi setelah modal ditutup.</p>
+      </div>`);
+    const copyBtn = async (btn, text, label) => {
+      try { await navigator.clipboard.writeText(text); }
+      catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (_) {}
+        document.body.removeChild(ta);
+      }
+      const orig = btn.innerHTML;
+      btn.innerHTML = 'Tersalin ✓';
+      btn.classList.add('is-copied'); btn.disabled = true;
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('is-copied'); btn.disabled = false; }, 2000);
+    };
+    document.getElementById('copy-all').addEventListener('click', e => copyBtn(e.currentTarget, allText));
+    document.getElementById('copy-id') .addEventListener('click', e => copyBtn(e.currentTarget, id));
+    document.getElementById('copy-pw') .addEventListener('click', e => copyBtn(e.currentTarget, password));
+    document.getElementById('acc-close').addEventListener('click', closeModal);
+  }
+
+  /* Wire filters */
+  document.getElementById('add-user-btn').addEventListener('click', openAddModal);
+  ['filter-role', 'filter-paket'].forEach(id =>
+    document.getElementById(id).addEventListener('change', loadUsers));
+  let searchTimer;
+  document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadUsers, 250);
+  });
+
+  loadPackages().then(loadUsers);
+</script>
+</body>
+</html>
