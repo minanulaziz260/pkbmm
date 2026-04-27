@@ -149,6 +149,21 @@
     transition:width .25s var(--ease),opacity .3s;pointer-events:none}
   .loading-bar.active{width:75%}
   .loading-bar.done{width:100%;opacity:0}
+  /* Account-created success modal */
+  .acc-success-box{background:linear-gradient(135deg,rgba(16,185,129,.10),rgba(13,148,136,.06));
+    border:1px solid var(--primary);border-radius:14px;padding:14px 16px;display:grid;gap:10px;
+    box-shadow:0 0 0 4px rgba(16,185,129,.08), 0 8px 24px -10px rgba(13,148,136,.35) inset}
+  .acc-success-box .acc-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding-bottom:8px;border-bottom:1px dashed var(--border)}
+  .acc-success-box .acc-row:last-child{border-bottom:0;padding-bottom:0}
+  .acc-success-box .acc-k{color:var(--text-muted);font-weight:600;font-size:.88rem}
+  .acc-success-box .acc-v{color:var(--text);font-weight:700;text-align:right;word-break:break-all}
+  .acc-success-box .acc-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--surface-2);padding:4px 8px;border-radius:6px;border:1px solid var(--border)}
+  .acc-success-box .acc-pw{color:var(--primary)}
+  .acc-warn{color:var(--err);font-size:.85rem;margin:0;font-weight:600}
+  .btn.is-copied{background:var(--ok-grad,linear-gradient(135deg,#10b981,#059669));color:#fff;
+    border-color:transparent}
   .btn.outline{background:transparent;border-color:var(--border-strong);color:var(--text)}
   .btn.outline:hover{border-color:var(--primary);color:var(--primary)}
   .btn.danger{background:var(--danger-grad);color:#fff;border-color:transparent;
@@ -3291,6 +3306,63 @@ function generatePassword(){
   return out;
 }
 function openAddSiswaModal(){ openAddUserModal('siswa'); }
+function showAccountCreatedModal({ name, role, paket, id, password }){
+  const safeName = escapeHtml(name);
+  const safeRole = escapeHtml(role);
+  const safePaket= escapeHtml(paket || '-');
+  const safeId   = escapeHtml(id);
+  const safePw   = escapeHtml(password);
+  const allText =
+`================================
+Nama    : ${name}
+Peran   : ${role}
+Paket   : ${paket || '-'}
+ID      : ${id}
+Password: ${password}
+================================`;
+  openModal('Akun Berhasil Dibuat! ✅', `
+    <div class="stack" style="gap:14px">
+      <div class="acc-success-box">
+        <div class="acc-row"><span class="acc-k">Nama Lengkap</span><span class="acc-v">${safeName}</span></div>
+        <div class="acc-row"><span class="acc-k">Peran</span><span class="acc-v">${safeRole}</span></div>
+        <div class="acc-row"><span class="acc-k">Paket</span><span class="acc-v">${safePaket}</span></div>
+        <div class="acc-row"><span class="acc-k">ID Pengguna</span><span class="acc-v acc-mono">${safeId}</span></div>
+        <div class="acc-row"><span class="acc-k">Password</span><span class="acc-v acc-mono acc-pw">${safePw}</span></div>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn primary" id="acc-copy-all">📋 Salin Semua</button>
+        <button type="button" class="btn" id="acc-copy-id">Salin ID</button>
+        <button type="button" class="btn" id="acc-copy-pw">Salin Password</button>
+        <button type="button" class="btn ghost" id="acc-close" style="margin-left:auto">Tutup</button>
+      </div>
+      <p class="acc-warn">⚠️ Simpan ID dan password ini sekarang. Password tidak akan ditampilkan lagi setelah modal ditutup.</p>
+    </div>
+  `);
+  const copyTo = async (btn, text, originalLabel) => {
+    try{
+      await navigator.clipboard.writeText(text);
+    } catch(e){
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); } catch(_){}
+      document.body.removeChild(ta);
+    }
+    const prev = btn.innerHTML;
+    btn.innerHTML = 'Tersalin ✓';
+    btn.classList.add('is-copied');
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.innerHTML = originalLabel || prev;
+      btn.classList.remove('is-copied');
+      btn.disabled = false;
+    }, 2000);
+  };
+  $('#acc-copy-all').addEventListener('click', e => copyTo(e.currentTarget, allText, '📋 Salin Semua'));
+  $('#acc-copy-id') .addEventListener('click', e => copyTo(e.currentTarget, id,      'Salin ID'));
+  $('#acc-copy-pw') .addEventListener('click', e => copyTo(e.currentTarget, password,'Salin Password'));
+  $('#acc-close')   .addEventListener('click', closeModal);
+}
 function openAddUserModal(initialRole='siswa'){
   let currentRole = ROLE_OPTIONS.find(r => r.value===initialRole) || ROLE_OPTIONS[0];
   const suggestedPW = generatePassword();
@@ -3472,9 +3544,9 @@ function openAddUserModal(initialRole='siswa'){
 
       DATA.users.push(u);
       saveCustomUsers();
-      closeModal();
       const roleLabel = roleCfg.label;
-      toast(`Akun ${roleLabel.toLowerCase()} "${name}" berhasil dibuat — ID: ${nis}`,'success');
+      const paketTxt = Array.isArray(paket) ? paket.join(', ') : (paket || '-');
+      showAccountCreatedModal({ name, role: roleLabel, paket: paketTxt, id: nis, password: pw });
       navigate(App.view);
     });
     setTimeout(()=>{ const el=$('#as-name'); if(el) el.focus(); }, 50);
