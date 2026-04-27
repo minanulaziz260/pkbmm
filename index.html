@@ -354,7 +354,9 @@
   .stats-grid{display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
   @media (min-width:720px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
   .stat{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;
-    overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s}
+    overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s;
+    color:inherit;text-align:left;font-family:inherit;font-size:inherit;width:100%;display:block}
+  button.stat{cursor:pointer}
   .stat:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--border-strong)}
   .stat::after{content:"";position:absolute;inset:auto -30% -30% auto;width:120px;height:120px;border-radius:50%;
     background:radial-gradient(circle,var(--primary-50),transparent 70%);opacity:.7;pointer-events:none}
@@ -378,6 +380,7 @@
 
   /* Stat icon variant */
   .stat.with-ico{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+  button.stat.with-ico{display:grid}
   .stat .stat-ico{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
     background:var(--primary-50);color:var(--primary-600);font-size:1.3rem}
   .stat .stat-ico.amber{background:rgba(245,158,11,.14);color:#b45309}
@@ -1963,42 +1966,78 @@ function viewAdminDashboard(){
   const totalGuru  = DATA.users.filter(u=>u.role==='guru').length;
   const totalMateri = DATA.materi.length;
   const totalKuis = DATA.kuis.length;
+  const maxSiswa = Math.max(...DATA.paket.map(p=>p.siswa), 1);
   return `
-    <div class="page-head"><div><h1><span class="grad">Dashboard Admin</span></h1><p>Ringkasan platform PKBM MUGI SAE</p></div></div>
+    <div class="page-head"><div><h1><span class="grad">Dashboard Admin</span></h1><p>Ringkasan platform PKBM MUGI SAE — klik kartu untuk navigasi cepat</p></div></div>
     <div class="stats-grid" style="margin-bottom:18px">
-      <div class="stat with-ico"><div class="stat-ico" aria-hidden="true">👥</div><div><div class="v" data-counter="1684">0</div><div class="l">Total siswa terdaftar</div><div class="delta up">↑ +124 bulan ini</div></div></div>
-      <div class="stat with-ico"><div class="stat-ico cyan" aria-hidden="true">👨‍🏫</div><div><div class="v" data-counter="${totalGuru+22}">0</div><div class="l">Guru/Tutor aktif</div><div class="delta up">↑ +3</div></div></div>
-      <div class="stat with-ico"><div class="stat-ico amber" aria-hidden="true">📚</div><div><div class="v" data-counter="${totalMateri+412}">0</div><div class="l">Materi tersedia</div><div class="delta up">↑ +18</div></div></div>
-      <div class="stat with-ico"><div class="stat-ico rose" aria-hidden="true">📝</div><div><div class="v" data-counter="${totalKuis+86}">0</div><div class="l">Kuis terbit</div><div class="delta up">↑ +5</div></div></div>
+      <button type="button" class="stat with-ico clickable" data-stat-go="pengguna" data-filter-role="siswa" aria-label="Lihat manajemen pengguna - siswa">
+        <div class="stat-ico" aria-hidden="true">👥</div>
+        <div><div class="v" data-counter="1684">0</div><div class="l">Total siswa terdaftar</div><div class="delta up">↑ +124 bulan ini</div></div>
+      </button>
+      <button type="button" class="stat with-ico clickable" data-stat-go="pengguna" data-filter-role="guru" aria-label="Lihat manajemen pengguna - guru">
+        <div class="stat-ico cyan" aria-hidden="true">👨‍🏫</div>
+        <div><div class="v" data-counter="${totalGuru+22}">0</div><div class="l">Guru/Tutor aktif</div><div class="delta up">↑ +3</div></div>
+      </button>
+      <button type="button" class="stat with-ico clickable" data-stat-go="kurikulum" aria-label="Lihat kurikulum & materi">
+        <div class="stat-ico amber" aria-hidden="true">📚</div>
+        <div><div class="v" data-counter="${totalMateri+412}">0</div><div class="l">Materi tersedia</div><div class="delta up">↑ +18</div></div>
+      </button>
+      <button type="button" class="stat with-ico clickable" data-stat-go="kurikulum" aria-label="Lihat kurikulum & kuis">
+        <div class="stat-ico rose" aria-hidden="true">📝</div>
+        <div><div class="v" data-counter="${totalKuis+86}">0</div><div class="l">Kuis terbit</div><div class="delta up">↑ +5</div></div>
+      </button>
     </div>
     <div class="grid" style="grid-template-columns:1fr;gap:18px">
       <section class="card">
-        <h3>Distribusi siswa per paket</h3>
-        <div class="barchart">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0">Distribusi siswa per paket</h3>
+          <span class="muted" style="font-size:.8rem">Klik bar → filter pengguna</span></div>
+        <div class="barchart" style="margin-top:10px">
           ${DATA.paket.map(p=>`
-            <div class="bar"><div class="b" style="height:${p.siswa/12}%;background:${p.color}"></div><div class="v">${p.siswa}</div><div>Paket ${p.id}</div></div>`).join('')}
+            <button type="button" class="bar" data-paket-bar="${p.id}" aria-label="Filter pengguna Paket ${p.id} (${p.siswa} siswa)">
+              <div class="b" style="height:${(p.siswa/maxSiswa)*100}%;background:${p.color}"></div>
+              <div class="v">${p.siswa}</div>
+              <div>Paket ${p.id}</div>
+            </button>`).join('')}
         </div>
       </section>
       <section class="card">
         <h3>Aktivitas terbaru</h3>
-        <ul style="margin:0;padding-left:18px">
-          <li>15 menit lalu — <b>Siti Nurhaliza</b> menyelesaikan kuis Limit Fungsi (skor 4/5).</li>
-          <li>1 jam lalu — <b>Pak Budi</b> mengunggah materi <i>Turunan Fungsi</i>.</li>
-          <li>2 jam lalu — <b>Admin Utama</b> mempublikasikan pengumuman beasiswa LPDP.</li>
-          <li>Kemarin — <b>5 siswa baru</b> mendaftar Paket C.</li>
-        </ul>
+        <div class="stack" style="gap:6px;margin-top:8px">
+          ${getRecentActivities().map((a,i)=>`
+            <button type="button" class="activity-item" data-act-idx="${i}">
+              <div class="dot"></div>
+              <div class="meta">
+                <time>${fmtRel(a.t)}</time>
+                <p>${a.html}</p>
+              </div>
+            </button>`).join('')}
+        </div>
       </section>
       <section class="card">
         <h3>Kesehatan sistem</h3>
-        <div class="row" style="gap:14px;flex-wrap:wrap">
-          <span class="badge ok">● Server: Sehat</span>
-          <span class="badge ok">● Database: 99.99%</span>
-          <span class="badge warn">● Penyimpanan: 78%</span>
-          <span class="badge ok">● API Eksternal: OK</span>
+        <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:6px">
+          <button type="button" class="badge ok health-badge" data-health="server" aria-label="Detail status server">● Server: Sehat</button>
+          <button type="button" class="badge ok health-badge" data-health="db" aria-label="Detail status database">● Database: 99.99%</button>
+          <button type="button" class="badge warn health-badge" data-health="storage" aria-label="Detail penyimpanan 78%">● Penyimpanan: 78%</button>
+          <button type="button" class="badge ok health-badge" data-health="api" aria-label="Detail status API eksternal">● API Eksternal: OK</button>
         </div>
       </section>
     </div>
   `;
+}
+
+/* Recent activities (referenced from admin dashboard) */
+function getRecentActivities(){
+  return [
+    { t:Date.now()-15*60e3, html:'<b>Siti Nurhaliza</b> menyelesaikan kuis Limit Fungsi (skor 4/5).',
+      detail:{ kind:'kuis', title:'Hasil Kuis: Limit Fungsi', body:`<p>Skor: <b>4/5 (80%)</b></p><p>Durasi: 12 menit · Selesai 15 menit lalu</p><p>Topik kekuatan: substitusi langsung. Topik perlu remedial: faktorisasi.</p>` } },
+    { t:Date.now()-1*3600e3, html:'<b>Pak Budi</b> mengunggah materi <i>Turunan Fungsi</i>.',
+      detail:{ kind:'materi', title:'Materi baru: Turunan Fungsi', body:`<p>Tipe: bacaan · Durasi: 25 menit</p><p>Aturan turunan dasar dan aplikasinya dalam masalah maksimum-minimum.</p>` } },
+    { t:Date.now()-2*3600e3, html:'<b>Admin Utama</b> mempublikasikan pengumuman beasiswa LPDP.',
+      detail:{ kind:'pengumuman', title:'Pengumuman: Beasiswa LPDP', body:`<p>Pendaftaran beasiswa LPDP untuk siswa berprestasi telah dibuka. Tenggat 30 April 2026.</p>` } },
+    { t:Date.now()-1*86400e3, html:'<b>5 siswa baru</b> mendaftar Paket C.',
+      detail:{ kind:'pengguna', title:'5 pendaftaran baru — Paket C', body:`<p>5 akun siswa berhasil ditambahkan ke Paket C dalam 24 jam terakhir. Klik <b>Manajemen Pengguna</b> untuk meninjau.</p>` } },
+  ];
 }
 
 function viewAdminPengguna(){
@@ -2278,6 +2317,78 @@ function bindViewActions(){
     saveCustomUsers();
     toast(`Akun ${u.name} dihapus`,'info');
     navigate(App.view);
+  }));
+
+  // ===== Admin: Dashboard interactive elements =====
+  $$('[data-stat-go]').forEach(b => b.addEventListener('click', e => {
+    const t = e.currentTarget;
+    const view = t.dataset.statGo;
+    if(t.dataset.filterRole) App.filters.userRole = t.dataset.filterRole;
+    if(t.dataset.filterPaket) App.filters.userPaket = t.dataset.filterPaket;
+    navigate(view);
+  }));
+  $$('[data-paket-bar]').forEach(b => b.addEventListener('click', e => {
+    App.filters.userRole = 'siswa';
+    App.filters.userPaket = e.currentTarget.dataset.paketBar;
+    toast(`Filter: Siswa Paket ${App.filters.userPaket}`,'info',1800);
+    navigate('pengguna');
+  }));
+  $$('[data-act-idx]').forEach(b => b.addEventListener('click', e => {
+    const i = +e.currentTarget.dataset.actIdx;
+    const a = getRecentActivities()[i];
+    if(!a) return;
+    const goLabel = { kuis:'Buka kuis', materi:'Buka materi', pengumuman:'Buka pengumuman', pengguna:'Buka pengguna' }[a.detail.kind] || 'Buka';
+    const goView  = { kuis:'kurikulum', materi:'kurikulum', pengumuman:'pengumuman', pengguna:'pengguna' }[a.detail.kind] || 'dashboard';
+    openModal(a.detail.title, `
+      ${a.detail.body}
+      <div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn" id="act-close">Tutup</button>
+        <button type="button" class="btn primary" id="act-go">${escapeHtml(goLabel)} →</button>
+      </div>`);
+    $('#act-close').addEventListener('click', closeModal);
+    $('#act-go').addEventListener('click', ()=>{ closeModal(); navigate(goView); });
+  }));
+  $$('[data-health]').forEach(b => b.addEventListener('click', e => {
+    const k = e.currentTarget.dataset.health;
+    const map = {
+      server: { title:'Status Server', body:`
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">
+          <div class="stat"><div class="v">99.98%</div><div class="l">Uptime 30 hari</div></div>
+          <div class="stat"><div class="v">142 ms</div><div class="l">Response avg</div></div>
+          <div class="stat"><div class="v">12</div><div class="l">Region aktif</div></div>
+        </div>
+        <p class="muted" style="margin-top:10px">Tidak ada insiden aktif. Maintenance terjadwal: 2 Mei 2026, 02:00 WIB.</p>` },
+      db: { title:'Statistik Database', body:`
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">
+          <div class="stat"><div class="v">99.99%</div><div class="l">Uptime DB</div></div>
+          <div class="stat"><div class="v">2.4 M</div><div class="l">Total record</div></div>
+          <div class="stat"><div class="v">38 ms</div><div class="l">Query avg</div></div>
+          <div class="stat"><div class="v">14 GB</div><div class="l">Ukuran DB</div></div>
+        </div>
+        <p class="muted" style="margin-top:10px">Backup otomatis berjalan harian pukul 23:30 WIB. Replikasi 3 zona.</p>` },
+      storage: { title:'Detail Penyimpanan', body:`
+        <p>Penyimpanan terpakai <b>78%</b> dari kuota 500 GB.</p>
+        <div style="height:14px;background:var(--surface-2);border-radius:8px;overflow:hidden;margin:8px 0">
+          <div style="width:78%;height:100%;background:linear-gradient(90deg,#10b981,#f59e0b)"></div>
+        </div>
+        <table>
+          <tr><th>Kategori</th><th style="text-align:right">Ukuran</th><th style="text-align:right">%</th></tr>
+          <tr><td>Materi (PDF/Video)</td><td style="text-align:right">240 GB</td><td style="text-align:right">48%</td></tr>
+          <tr><td>Submission tugas</td><td style="text-align:right">95 GB</td><td style="text-align:right">19%</td></tr>
+          <tr><td>Backup harian</td><td style="text-align:right">42 GB</td><td style="text-align:right">8%</td></tr>
+          <tr><td>Cache & log</td><td style="text-align:right">13 GB</td><td style="text-align:right">3%</td></tr>
+        </table>
+        <p class="muted" style="margin-top:10px">Disarankan menambah kuota atau membersihkan backup berusia &gt; 90 hari.</p>` },
+      api: { title:'Status API Eksternal', body:`
+        <ul style="padding-left:18px;line-height:1.8">
+          <li><b>Dapodik</b> · OK · Last sync 12 menit lalu</li>
+          <li><b>Email gateway</b> · OK · Antrian: 3 pesan</li>
+          <li><b>SMS gateway (Twilio)</b> · OK · Saldo: 89%</li>
+          <li><b>OCR sertifikat</b> · OK · 23 dokumen / hari</li>
+        </ul>` },
+    };
+    const c = map[k]; if(!c) return;
+    openModal(c.title, c.body);
   }));
 
   // Guru materi
