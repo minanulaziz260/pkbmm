@@ -2094,7 +2094,7 @@ function viewAdminPengguna(){
         <h1>Manajemen Pengguna</h1>
         <p>${DATA.users.length} akun · ${totalSiswa} siswa · ${totalGuru} guru · Menampilkan ${rows.length}</p>
       </div>
-      <button class="btn primary" id="add-siswa">+ Tambah Siswa</button>
+      <button class="btn primary" id="add-siswa">+ Tambah Pengguna</button>
     </div>
     <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px;align-items:center">
       <select class="select" id="filter-role" style="max-width:180px" aria-label="Filter peran">
@@ -2119,7 +2119,7 @@ function viewAdminPengguna(){
     ${rows.length === 0 ? `
       <div class="empty-state">
         <h4>Tidak ada pengguna yang cocok</h4>
-        <p>Coba ubah filter, atau tambahkan akun baru lewat tombol <b>+ Tambah Siswa</b>.</p>
+        <p>Coba ubah filter, atau tambahkan akun baru lewat tombol <b>+ Tambah Pengguna</b>.</p>
       </div>` : `
     <div class="table-wrap">
       <table id="user-table">
@@ -2865,61 +2865,122 @@ function bindAuth(){
 }
 
 /* ===== Admin: Add Siswa modal ===== */
-// ID acak siswa: SIS-XXXXXX (6 karakter alfanumerik tanpa karakter ambigu)
-function generateSiswaId(){
+// ID acak: <PREFIX>-XXXXXX (6 karakter alfanumerik tanpa karakter ambigu)
+// SIS- (siswa), GRU- (guru/tutor), ADM- (admin)
+function generateUserId(role='siswa'){
+  const prefix = role==='guru' ? 'GRU-' : role==='admin' ? 'ADM-' : 'SIS-';
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // skip I, O, 0, 1
   const pick = () => alphabet[Math.floor(Math.random()*alphabet.length)];
   for(let attempt=0; attempt<50; attempt++){
-    let code = 'SIS-';
+    let code = prefix;
     for(let i=0;i<6;i++) code += pick();
     if(!DATA.users.some(u => (u.nis||'').toUpperCase() === code)) return code;
   }
-  // Fallback: append timestamp slice
-  return 'SIS-' + Date.now().toString(36).toUpperCase().slice(-6);
+  return prefix + Date.now().toString(36).toUpperCase().slice(-6);
 }
+// Backward compat alias
+function generateSiswaId(){ return generateUserId('siswa'); }
+const ROLE_OPTIONS = [
+  { value:'siswa', label:'Siswa',       idLabel:'NIS / ID Siswa', idPrefix:'SIS-', needsPaket:true,  paketMode:'single' },
+  { value:'guru',  label:'Guru / Tutor', idLabel:'NIP / ID Guru',  idPrefix:'GRU-', needsPaket:true,  paketMode:'multi'  },
+  { value:'admin', label:'Admin',        idLabel:'ID Admin',        idPrefix:'ADM-', needsPaket:false, paketMode:'none'   },
+];
 function generatePassword(){
   const s = 'abcdefghjkmnpqrstuvwxyz23456789';
   let out = '';
   for(let i=0;i<8;i++) out += s[Math.floor(Math.random()*s.length)];
   return out;
 }
-function openAddSiswaModal(){
-  const suggestedId = generateSiswaId();
+function openAddSiswaModal(){ openAddUserModal('siswa'); }
+function openAddUserModal(initialRole='siswa'){
+  let currentRole = ROLE_OPTIONS.find(r => r.value===initialRole) || ROLE_OPTIONS[0];
   const suggestedPW = generatePassword();
-  openModal('Tambah Akun Siswa', `
+
+  const renderPaketField = (role) => {
+    if(role.paketMode === 'none') return '';
+    if(role.paketMode === 'multi'){
+      return `
+        <div class="field"><label>Paket yang diampu <span class="muted">(boleh lebih dari satu)</span></label>
+          <div class="row" id="as-paket-multi" style="gap:14px;flex-wrap:wrap">
+            ${DATA.paket.map(p=>`
+              <label class="row" style="gap:6px;cursor:pointer;font-size:.9rem">
+                <input type="checkbox" name="paketMulti" value="${escapeHtml(p.id)}"/>
+                ${escapeHtml(p.label)}
+              </label>`).join('')}
+          </div>
+          <span class="hint">Guru/Tutor dapat lintas Paket A, B, dan C.</span>
+        </div>`;
+    }
+    return `
+      <div class="field" style="flex:1;min-width:140px"><label for="as-paket">Paket</label>
+        <select class="select" id="as-paket" name="paket" required>
+          ${DATA.paket.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join('')}
+        </select></div>`;
+  };
+
+  const renderRoleSpecific = (role) => {
+    if(role.value === 'siswa'){
+      return `
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          ${renderPaketField(role)}
+          <div class="field" style="flex:1;min-width:140px"><label for="as-kelas">Kelas / Rombel</label>
+            <input class="input" id="as-kelas" name="kelas" placeholder="cth: X-IPS / Setara SMA Kelas 11"/></div>
+        </div>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:120px"><label for="as-usia">Usia</label>
+            <input class="input" id="as-usia" name="usia" type="number" min="13" max="80" placeholder="cth: 18"/></div>
+          <div class="field" style="flex:2;min-width:160px"><label for="as-desa">Nama desa</label>
+            <input class="input" id="as-desa" name="desa" required placeholder="cth: Cibeureum"/></div>
+        </div>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:140px"><label for="as-kecamatan">Kecamatan <span class="muted">(opsional)</span></label>
+            <input class="input" id="as-kecamatan" name="kecamatan" placeholder="cth: Kertasari"/></div>
+          <div class="field" style="flex:1;min-width:140px"><label for="as-kota">Kota / Kabupaten</label>
+            <input class="input" id="as-kota" name="kota" placeholder="cth: Bandung"/></div>
+        </div>
+        <div class="field"><label for="as-hp">No. HP wali / siswa <span class="muted">(opsional)</span></label>
+          <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>`;
+    }
+    if(role.value === 'guru'){
+      return `
+        ${renderPaketField(role)}
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <div class="field" style="flex:2;min-width:160px"><label for="as-mapel">Mata pelajaran utama <span class="muted">(opsional)</span></label>
+            <input class="input" id="as-mapel" name="mapel" placeholder="cth: Matematika, IPA"/></div>
+          <div class="field" style="flex:1;min-width:140px"><label for="as-email">Email <span class="muted">(opsional)</span></label>
+            <input class="input" id="as-email" name="email" type="email" placeholder="cth: budi@mugisae.id"/></div>
+        </div>
+        <div class="field"><label for="as-hp">No. HP <span class="muted">(opsional)</span></label>
+          <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>`;
+    }
+    // admin
+    return `
+      <div class="field"><label for="as-email">Email <span class="muted">(opsional)</span></label>
+        <input class="input" id="as-email" name="email" type="email" placeholder="cth: admin2@mugisae.id"/></div>
+      <div class="field"><label for="as-hp">No. HP <span class="muted">(opsional)</span></label>
+        <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>`;
+  };
+
+  const buildBody = (role) => `
     <form id="add-siswa-form" class="stack" autocomplete="off">
+      <div class="field">
+        <label for="as-role">Peran</label>
+        <select class="select" id="as-role" name="role" required>
+          ${ROLE_OPTIONS.map(r => `<option value="${r.value}" ${r.value===role.value?'selected':''}>${escapeHtml(r.label)}</option>`).join('')}
+        </select>
+        <span class="hint">Pilih peran terlebih dahulu — field di bawah akan menyesuaikan otomatis.</span>
+      </div>
       <div class="field"><label for="as-name">Nama lengkap</label>
         <input class="input" id="as-name" name="name" required placeholder="cth: Andi Prasetya"/></div>
-      <div class="field"><label for="as-id">ID Akun Siswa</label>
+      <div class="field"><label for="as-id" id="as-id-label">${escapeHtml(role.idLabel)}</label>
         <div class="input-group">
-          <input class="input" id="as-id" name="nis" required value="${escapeHtml(suggestedId)}" pattern="^[A-Za-z0-9\\-]+$" maxlength="20"/>
+          <input class="input" id="as-id" name="nis" required value="${escapeHtml(generateUserId(role.value))}" pattern="^[A-Za-z0-9\\-]+$" maxlength="20"/>
           <button type="button" class="toggle" id="as-regen-id" aria-label="Acak ulang ID" title="Acak ulang ID">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 19 4.51L23 8"/></svg>
           </button>
         </div>
-        <span class="hint">ID ini dipakai siswa untuk login (pengganti email). Harus unik.</span></div>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
-        <div class="field" style="flex:1;min-width:140px"><label for="as-paket">Paket</label>
-          <select class="select" id="as-paket" name="paket" required>
-            ${DATA.paket.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join('')}
-          </select></div>
-        <div class="field" style="flex:1;min-width:140px"><label for="as-kelas">Kelas / Rombel</label>
-          <input class="input" id="as-kelas" name="kelas" placeholder="cth: X-IPS / Setara SMA Kelas 11"/></div>
-      </div>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
-        <div class="field" style="flex:1;min-width:120px"><label for="as-usia">Usia</label>
-          <input class="input" id="as-usia" name="usia" type="number" min="13" max="80" placeholder="cth: 18"/></div>
-        <div class="field" style="flex:2;min-width:160px"><label for="as-desa">Nama desa</label>
-          <input class="input" id="as-desa" name="desa" required placeholder="cth: Cibeureum"/></div>
-      </div>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
-        <div class="field" style="flex:1;min-width:140px"><label for="as-kecamatan">Kecamatan <span class="muted">(opsional)</span></label>
-          <input class="input" id="as-kecamatan" name="kecamatan" placeholder="cth: Kertasari"/></div>
-        <div class="field" style="flex:1;min-width:140px"><label for="as-kota">Kota / Kabupaten</label>
-          <input class="input" id="as-kota" name="kota" placeholder="cth: Bandung"/></div>
-      </div>
-      <div class="field"><label for="as-hp">No. HP wali / siswa <span class="muted">(opsional)</span></label>
-        <input class="input" id="as-hp" name="hp" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx"/></div>
+        <span class="hint" id="as-id-hint">ID ini dipakai untuk login (pengganti email). Harus unik.</span></div>
+      <div id="as-role-specific">${renderRoleSpecific(role)}</div>
       <div class="field"><label for="as-pw">Kata sandi awal</label>
         <div class="input-group">
           <input class="input" id="as-pw" name="pw" type="text" required minlength="6" value="${escapeHtml(suggestedPW)}"/>
@@ -2927,64 +2988,99 @@ function openAddSiswaModal(){
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 19 4.51L23 8"/></svg>
           </button>
         </div>
-        <span class="hint">Catat ID & sandi, lalu serahkan ke siswa. Sandi minimal 6 karakter.</span></div>
+        <span class="hint">Catat ID & sandi, lalu serahkan ke pengguna. Sandi minimal 6 karakter.</span></div>
       <div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px">
         <button type="button" class="btn" id="as-cancel">Batal</button>
-        <button type="submit" class="btn primary">Simpan akun siswa</button>
+        <button type="submit" class="btn primary" id="as-submit">Simpan akun</button>
       </div>
-    </form>
-  `);
-  $('#as-cancel').addEventListener('click', closeModal);
-  $('#as-regen-id').addEventListener('click', ()=>{ $('#as-id').value = generateSiswaId(); });
-  $('#as-regen-pw').addEventListener('click', ()=>{ $('#as-pw').value = generatePassword(); });
-  $('#add-siswa-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const name = (fd.get('name')||'').toString().trim();
-    const nis = (fd.get('nis')||'').toString().trim().toUpperCase();
-    const paket = (fd.get('paket')||'').toString();
-    const kelas = (fd.get('kelas')||'').toString().trim() || '-';
-    const usia = parseInt((fd.get('usia')||'').toString(),10) || null;
-    const desa = (fd.get('desa')||'').toString().trim();
-    const kecamatan = (fd.get('kecamatan')||'').toString().trim();
-    const kota = (fd.get('kota')||'').toString().trim() || '-';
-    const hp = (fd.get('hp')||'').toString().trim();
-    const pw = (fd.get('pw')||'').toString();
+    </form>`;
 
-    if(!name || !nis || !paket || !desa || !pw){
-      return toast('Lengkapi field wajib (nama, ID, paket, desa, sandi)','error');
-    }
-    if(!/^[A-Z0-9\-]+$/.test(nis)){
-      return toast('ID hanya boleh huruf, angka, dan tanda hubung','error');
-    }
-    if(pw.length < 6) return toast('Sandi minimal 6 karakter','error');
-    if(DATA.users.some(u => (u.nis||'').toUpperCase()===nis || (u.email||'').toUpperCase()===nis)){
-      return toast('ID sudah dipakai akun lain','error');
-    }
+  openModal('Tambah Akun Pengguna', buildBody(currentRole));
 
-    const u = {
-      id: 'u' + Date.now(),
-      name,
-      nis,
-      password: pw,
-      role: 'siswa',
-      paket,
-      kelas,
-      usia,
-      desa,
-      kecamatan,
-      kota,
-      hp,
-      joined: new Date().toISOString().slice(0,10),
-      avatar: initials(name),
-    };
-    DATA.users.push(u);
-    saveCustomUsers();
-    closeModal();
-    toast(`Akun siswa "${name}" berhasil dibuat — ID: ${nis}`,'success');
-    navigate(App.view);
-  });
-  setTimeout(()=>{ const el=$('#as-name'); if(el) el.focus(); }, 50);
+  const wireCommon = () => {
+    $('#as-cancel').addEventListener('click', closeModal);
+    $('#as-regen-id').addEventListener('click', ()=>{ $('#as-id').value = generateUserId(currentRole.value); });
+    $('#as-regen-pw').addEventListener('click', ()=>{ $('#as-pw').value = generatePassword(); });
+    $('#as-role').addEventListener('change', e => {
+      const next = ROLE_OPTIONS.find(r => r.value===e.target.value) || ROLE_OPTIONS[0];
+      currentRole = next;
+      $('#as-id-label').textContent = next.idLabel;
+      // Replace ID with new prefix only if user hasn't manually changed away from prefix
+      const idEl = $('#as-id');
+      const cur = (idEl.value||'').toUpperCase();
+      const isAutoFmt = ROLE_OPTIONS.some(r => cur.startsWith(r.idPrefix));
+      if(isAutoFmt) idEl.value = generateUserId(next.value);
+      $('#as-role-specific').innerHTML = renderRoleSpecific(next);
+      $('#as-submit').textContent = next.value==='siswa' ? 'Simpan akun siswa'
+                                  : next.value==='guru'  ? 'Simpan akun guru/tutor'
+                                  :                        'Simpan akun admin';
+    });
+    $('#add-siswa-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const role = (fd.get('role')||'siswa').toString();
+      const roleCfg = ROLE_OPTIONS.find(r => r.value===role) || ROLE_OPTIONS[0];
+      const name = (fd.get('name')||'').toString().trim();
+      const nis = (fd.get('nis')||'').toString().trim().toUpperCase();
+      const pw = (fd.get('pw')||'').toString();
+      const email = (fd.get('email')||'').toString().trim();
+      const hp = (fd.get('hp')||'').toString().trim();
+
+      if(!name || !nis || !pw){
+        return toast('Lengkapi field wajib (nama, ID, sandi)','error');
+      }
+      if(!/^[A-Z0-9\-]+$/.test(nis)){
+        return toast('ID hanya boleh huruf, angka, dan tanda hubung','error');
+      }
+      if(pw.length < 6) return toast('Sandi minimal 6 karakter','error');
+      if(DATA.users.some(u => (u.nis||'').toUpperCase()===nis || (u.email||'').toUpperCase()===nis.toUpperCase())){
+        return toast('ID sudah dipakai akun lain','error');
+      }
+      if(email && DATA.users.some(u => (u.email||'').toLowerCase() === email.toLowerCase())){
+        return toast('Email sudah dipakai akun lain','error');
+      }
+
+      // Role-specific validation + paket
+      let paket = null;
+      if(roleCfg.paketMode === 'single'){
+        paket = (fd.get('paket')||'').toString();
+        if(!paket) return toast('Pilih paket terlebih dahulu','error');
+      } else if(roleCfg.paketMode === 'multi'){
+        paket = fd.getAll('paketMulti').map(x=>x.toString());
+        if(paket.length===0) return toast('Pilih minimal satu paket yang diampu','error');
+      }
+
+      const u = {
+        id: 'u' + Date.now(),
+        name, nis, password: pw, role,
+        joined: new Date().toISOString().slice(0,10),
+        avatar: initials(name),
+        hp: hp || '',
+        email: email || '',
+      };
+      if(paket !== null) u.paket = paket;
+
+      if(role === 'siswa'){
+        u.kelas     = (fd.get('kelas')||'').toString().trim() || '-';
+        u.usia      = parseInt((fd.get('usia')||'').toString(),10) || null;
+        u.desa      = (fd.get('desa')||'').toString().trim();
+        u.kecamatan = (fd.get('kecamatan')||'').toString().trim();
+        u.kota      = (fd.get('kota')||'').toString().trim() || '-';
+        if(!u.desa) return toast('Nama desa wajib diisi untuk siswa','error');
+      } else if(role === 'guru'){
+        u.mapel = (fd.get('mapel')||'').toString().trim();
+      }
+
+      DATA.users.push(u);
+      saveCustomUsers();
+      closeModal();
+      const roleLabel = roleCfg.label;
+      toast(`Akun ${roleLabel.toLowerCase()} "${name}" berhasil dibuat — ID: ${nis}`,'success');
+      navigate(App.view);
+    });
+    setTimeout(()=>{ const el=$('#as-name'); if(el) el.focus(); }, 50);
+  };
+  wireCommon();
 }
 
 /* ===== Top bar interactions ===== */
