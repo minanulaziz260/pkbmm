@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard — PKBM MUGI SAE</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="container">
+  <h1>Selamat datang <span id="hello-name" class="muted"></span></h1>
+  <p class="muted">Ringkasan platform PKBM MUGI SAE.</p>
+
+  <div class="grid cols-2" style="margin-top:18px">
+    <div class="card">
+      <h3>Pengguna</h3>
+      <div id="stat-users" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+      <p class="muted" id="stat-users-detail">Memuat…</p>
+      <a class="btn" href="/users.html">Kelola Pengguna →</a>
+    </div>
+    <div class="card">
+      <h3>Paket</h3>
+      <div id="stat-packages" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+      <p class="muted" id="stat-packages-detail">Memuat…</p>
+      <a class="btn" href="/packages.html">Lihat Paket →</a>
+    </div>
+    <div class="card">
+      <h3>Mata pelajaran</h3>
+      <div id="stat-subjects" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+      <p class="muted" id="stat-subjects-detail">Memuat…</p>
+      <a class="btn" href="/curriculum.html">Buka Kurikulum →</a>
+    </div>
+    <div class="card">
+      <h3>Status server</h3>
+      <div id="stat-health" style="font-size:1.1rem;font-weight:700">Mengecek…</div>
+      <p class="muted">Endpoint <code>/api/health</code> pakai MySQL pool.</p>
+    </div>
+  </div>
+</main>
+<script src="/app.js"></script>
+<script>
+  const { Auth, api, renderHeader, escapeHtml } = window.PKBM;
+  Auth.requireOrRedirect('/login.html');
+  renderHeader('dashboard');
+  document.getElementById('hello-name').textContent = (Auth.user && Auth.user.name) ? '— ' + Auth.user.name : '';
+
+  (async () => {
+    try {
+      const [users, packs, curri, health] = await Promise.all([
+        api('GET', '/api/users'),
+        api('GET', '/api/packages'),
+        api('GET', '/api/curriculum'),
+        fetch('/api/health').then(r => r.json()).catch(() => ({ ok:false })),
+      ]);
+      document.getElementById('stat-users').textContent = users.count;
+      const siswa = users.users.filter(u => u.role === 'siswa').length;
+      const guru  = users.users.filter(u => u.role === 'guru').length;
+      const admin = users.users.filter(u => u.role === 'admin').length;
+      document.getElementById('stat-users-detail').textContent =
+        `${siswa} siswa · ${guru} guru · ${admin} admin`;
+
+      document.getElementById('stat-packages').textContent = packs.packages.length;
+      document.getElementById('stat-packages-detail').textContent =
+        packs.packages.map(p => p.code).join(' · ') || '-';
+
+      document.getElementById('stat-subjects').textContent = curri.subjects.length;
+      const totalMat = curri.subjects.reduce((a, s) => a + (s.material_count || 0), 0);
+      const totalKuis = curri.subjects.reduce((a, s) => a + (s.quiz_count || 0), 0);
+      document.getElementById('stat-subjects-detail').textContent =
+        `${totalMat} materi · ${totalKuis} kuis`;
+
+      const h = document.getElementById('stat-health');
+      if (health.ok) {
+        h.innerHTML = '<span class="badge ok">● Online</span> ' +
+          '<span class="muted">DB: ' + escapeHtml(health.db || '?') + '</span>';
+      } else {
+        h.innerHTML = '<span class="badge danger">● Bermasalah</span>';
+      }
+    } catch (err) {
+      document.querySelectorAll('[id^=stat-]').forEach(el => { if (el.textContent === '…') el.textContent = '—'; });
+    }
+  })();
+</script>
+</body>
+</html>

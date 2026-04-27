@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kurikulum — PKBM MUGI SAE</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="container">
+  <div class="row" style="justify-content:space-between;margin-bottom:14px">
+    <div>
+      <h1 style="margin:0">Kurikulum</h1>
+      <p class="muted">Mata pelajaran per paket. Setiap mapel berisi materi & kuis.</p>
+    </div>
+    <button class="btn primary" id="add-subj-btn">+ Tambah Mapel</button>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="field">
+      <label>Filter paket</label>
+      <select id="filter-package">
+        <option value="">Semua paket</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="subj-list" class="stack"></div>
+</main>
+
+<script src="/app.js"></script>
+<script>
+  const { Auth, api, toast, openModal, closeModal, escapeHtml, renderHeader } = window.PKBM;
+  Auth.requireOrRedirect('/login.html');
+  renderHeader('curriculum');
+
+  const url = new URL(window.location.href);
+  const initialPkg = url.searchParams.get('package') || '';
+  let PACKAGES = [];
+
+  async function loadPackages() {
+    const r = await api('GET', '/api/packages');
+    PACKAGES = r.packages;
+    const sel = document.getElementById('filter-package');
+    PACKAGES.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.code; o.textContent = `Paket ${p.code} — ${p.label}`;
+      sel.appendChild(o);
+    });
+    if (initialPkg) sel.value = initialPkg;
+  }
+
+  async function load() {
+    const pkg = document.getElementById('filter-package').value;
+    const qs = pkg ? `?package=${encodeURIComponent(pkg)}` : '';
+    const r = await api('GET', '/api/curriculum' + qs);
+    const host = document.getElementById('subj-list');
+    if (r.subjects.length === 0) {
+      host.innerHTML = `<p class="muted">Belum ada mata pelajaran. Klik "+ Tambah Mapel" untuk membuat.</p>`;
+      return;
+    }
+    // Group by package
+    const grouped = {};
+    r.subjects.forEach(s => {
+      if (!grouped[s.package_code]) grouped[s.package_code] = [];
+      grouped[s.package_code].push(s);
+    });
+    host.innerHTML = Object.keys(grouped).sort().map(code => `
+      <div class="card">
+        <h3 style="margin:0 0 10px">Paket ${escapeHtml(code)} <span class="muted" style="font-weight:400;font-size:.85rem">(${grouped[code].length} mapel)</span></h3>
+        <div class="stack">
+          ${grouped[code].map(s => `
+            <div class="row" style="justify-content:space-between;border-bottom:1px solid var(--border);padding:8px 0">
+              <div class="row">
+                <span style="font-size:1.4rem">${escapeHtml(s.icon || '📘')}</span>
+                <div>
+                  <div style="font-weight:700">${escapeHtml(s.name)}</div>
+                  <div class="muted" style="font-size:.82rem">${escapeHtml(s.description || '-')}</div>
+                </div>
+              </div>
+              <div class="row" style="gap:8px">
+                <span class="badge">${s.material_count} materi</span>
+                <span class="badge">${s.quiz_count} kuis</span>
+                <button class="btn ghost" data-edit="${s.id}">✎</button>
+                <button class="btn ghost" data-del="${s.id}" style="color:var(--danger)">🗑</button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+
+    host.querySelectorAll('[data-edit]').forEach(b =>
+      b.addEventListener('click', () => openEditModal(parseInt(b.dataset.edit, 10))));
+    host.querySelectorAll('[data-del]').forEach(b =>
+      b.addEventListener('click', () => onDelete(parseInt(b.dataset.del, 10))));
+  }
+
+  const ICONS = ['📘','📕','📗','📙','📒','📚','✏️','📝','🧮','📐','🔬','🧪','🌍','🌐','🎨','🎵','💻','🏃'];
+
+  function buildForm(s = {}) {
+    const opts = PACKAGES.map(p =>
+      `<option value="${p.code}" ${p.code===s.package_code?'selected':''}>Paket ${p.code} — ${escapeHtml(p.label)}</option>`).join('');
+    const iconHtml = ICONS.map(ic => `
+      <label class="badge" style="cursor:pointer">
+        <input type="radio" name="icon" value="${ic}" ${ic===(s.icon||'📘')?'checked':''} style="margin-right:4px"/>${ic}
+      </label>`).join('');
+    return `
+      <form id="subj-form" class="stack">
+        <div class="field"><label>Paket</label><select name="package_code" required>${opts}</select></div>
+        <div class="field"><label>Nama mapel</label>
+          <input class="input" name="name" required value="${escapeHtml(s.name||'')}" placeholder="cth: Matematika" /></div>
+        <div class="field"><label>Ikon</label>
+          <div class="row" style="flex-wrap:wrap;gap:6px">${iconHtml}</div></div>
+        <div class="field"><label>Deskripsi</label>
+          <textarea class="textarea" name="description">${escapeHtml(s.description||'')}</textarea></div>
+        <div class="field"><label>Urutan tampil</label>
+          <input class="input" type="number" name="sort_order" value="${s.sort_order||0}" /></div>
+        <div class="row" style="justify-content:flex-end">
+          <button type="button" class="btn" id="cancel-s">Batal</button>
+          <button class="btn primary">Simpan</button>
+        </div>
+      </form>`;
+  }
+
+  function openAddModal() {
+    if (PACKAGES.length === 0) {
+      toast('Buat paket terlebih dahulu', 'info'); return;
+    }
+    openModal('Tambah Mapel', buildForm({}));
+    document.getElementById('cancel-s').addEventListener('click', closeModal);
+    document.getElementById('subj-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      try {
+        await api('POST', '/api/curriculum', {
+          package_code: fd.get('package_code'),
+          name: fd.get('name'),
+          icon: fd.get('icon') || '📘',
+          description: fd.get('description'),
+          sort_order: fd.get('sort_order'),
+        });
+        closeModal(); toast('Mapel dibuat', 'success'); load();
+      } catch (err) { toast(err.message, 'error'); }
+    });
+  }
+
+  function openEditModal(id) {
+    api('GET', '/api/curriculum/' + id).then(r => {
+      openModal('Edit Mapel', buildForm(r.subject));
+      document.getElementById('cancel-s').addEventListener('click', closeModal);
+      // disable package select on edit (changing package is risky)
+      document.querySelector('#subj-form select[name=package_code]').disabled = true;
+      document.getElementById('subj-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        try {
+          await api('PUT', '/api/curriculum/' + id, {
+            name: fd.get('name'),
+            icon: fd.get('icon') || '📘',
+            description: fd.get('description'),
+            sort_order: fd.get('sort_order'),
+          });
+          closeModal(); toast('Mapel disimpan', 'success'); load();
+        } catch (err) { toast(err.message, 'error'); }
+      });
+    });
+  }
+
+  async function onDelete(id) {
+    if (!confirm('Hapus mapel ini? Materi & kuis di dalamnya juga akan terhapus.')) return;
+    try {
+      await api('DELETE', '/api/curriculum/' + id);
+      toast('Mapel dihapus', 'info'); load();
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  document.getElementById('add-subj-btn').addEventListener('click', openAddModal);
+  document.getElementById('filter-package').addEventListener('change', load);
+
+  loadPackages().then(load);
+</script>
+</body>
+</html>

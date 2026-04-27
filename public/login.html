@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Masuk — PKBM MUGI SAE</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<main class="auth-screen">
+  <section class="auth-card">
+    <div class="brand">
+      <div class="logo">MS</div>
+      <div>
+        <div style="font-weight:800">PKBM MUGI SAE</div>
+        <div class="muted" style="font-size:.78rem">Sekolah Kesetaraan · Paket A · B · C</div>
+      </div>
+    </div>
+    <h1>Masuk</h1>
+    <p class="sub">Gunakan email atau ID akun (format <code>YYYY-XXXXXX</code>).</p>
+    <form id="login-form" autocomplete="off">
+      <div class="field">
+        <label for="identifier">Email atau ID akun</label>
+        <input class="input" id="identifier" name="identifier" required autofocus
+               placeholder="admin@mugisae.id atau 2026-123456" />
+      </div>
+      <div class="field">
+        <label for="password">Kata sandi</label>
+        <input class="input" id="password" name="password" type="password" required minlength="6" />
+      </div>
+      <button class="btn primary" type="submit" id="submit-btn">Masuk</button>
+    </form>
+    <p class="help" style="margin-top:14px">
+      Lupa kata sandi? Hubungi admin sekolah.
+    </p>
+  </section>
+</main>
+<script src="/app.js"></script>
+<script>
+  const { api, toast, Auth } = window.PKBM;
+
+  // Already logged in? bounce to dashboard
+  if (Auth.token) window.location.href = '/dashboard.html';
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.classList.add('is-loading'); btn.disabled = true;
+    try {
+      const data = await api('POST', '/api/auth/login', {
+        identifier: document.getElementById('identifier').value.trim(),
+        password:   document.getElementById('password').value,
+      });
+      Auth.save(data.token, data.user);
+      toast('Selamat datang, ' + (data.user.name || ''), 'success');
+      setTimeout(() => window.location.href = '/dashboard.html', 350);
+    } catch (err) {
+      toast(err.message || 'Login gagal', 'error');
+    } finally {
+      btn.classList.remove('is-loading'); btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
