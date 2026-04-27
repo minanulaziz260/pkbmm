@@ -100,7 +100,9 @@
   .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   .grid{display:grid;gap:16px}
   .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
-    background:var(--primary-50);color:var(--primary-600);font-weight:600;font-size:.78rem;border:1px solid transparent}
+    background:var(--primary-50);color:var(--primary-600);font-weight:600;font-size:.78rem;border:1px solid transparent;
+    font-family:inherit;line-height:1.2}
+  button.badge{cursor:pointer}
   .badge.warn{background:#fff3cd;color:#7a4f00;border-color:#ffd685}
   .badge.danger{background:#fde2e2;color:#8a1c1c;border-color:#f5b3b3}
   .badge.info{background:#dbeafe;color:#1e3a8a;border-color:#bfdbfe}
@@ -2041,39 +2043,137 @@ function getRecentActivities(){
 }
 
 function viewAdminPengguna(){
-  const all = DATA.users;
+  const f = App.filters;
   const seedIds = new Set(DATA._seedUserIds || []);
-  const totalSiswa = all.filter(u=>u.role==='siswa').length;
+  // Build filtered + sorted list
+  let rows = DATA.users.slice();
+  if(f.userRole !== 'all') rows = rows.filter(u => u.role === f.userRole);
+  if(f.userPaket !== 'all') rows = rows.filter(u => {
+    if(!u.paket) return false;
+    return Array.isArray(u.paket) ? u.paket.includes(f.userPaket) : u.paket === f.userPaket;
+  });
+  if(f.userQuery){
+    const q = f.userQuery.toLowerCase();
+    rows = rows.filter(u =>
+      (u.name||'').toLowerCase().includes(q) ||
+      (u.nis||'').toLowerCase().includes(q) ||
+      (u.email||'').toLowerCase().includes(q) ||
+      (u.desa||'').toLowerCase().includes(q) ||
+      (u.kecamatan||'').toLowerCase().includes(q) ||
+      (u.kota||'').toLowerCase().includes(q));
+  }
+  const sortVal = (u, col) => {
+    switch(col){
+      case 'name':   return (u.name||'').toLowerCase();
+      case 'login':  return (u.nis||u.email||'').toLowerCase();
+      case 'role':   return u.role||'';
+      case 'paket':  return Array.isArray(u.paket)?u.paket.join(','):(u.paket||'');
+      case 'desa':   return (u.desa||'').toLowerCase();
+      case 'joined': return new Date(u.joined||'2000-01-01').getTime();
+      case 'status': return u.disabled?1:0;
+      default: return '';
+    }
+  };
+  rows.sort((a,b) => {
+    const av = sortVal(a, f.userSort.col);
+    const bv = sortVal(b, f.userSort.col);
+    if(av < bv) return f.userSort.dir==='asc'?-1:1;
+    if(av > bv) return f.userSort.dir==='asc'?1:-1;
+    return 0;
+  });
+  const totalSiswa = DATA.users.filter(u=>u.role==='siswa').length;
+  const totalGuru  = DATA.users.filter(u=>u.role==='guru').length;
+  const ariaSort = col => f.userSort.col===col ? (f.userSort.dir==='asc'?'ascending':'descending') : 'none';
+  const activeFilters = [];
+  if(f.userRole!=='all')  activeFilters.push({ k:'role',  label:`Peran: ${f.userRole}` });
+  if(f.userPaket!=='all') activeFilters.push({ k:'paket', label:`Paket ${f.userPaket}` });
+  if(f.userQuery)         activeFilters.push({ k:'query', label:`Cari: "${escapeHtml(f.userQuery)}"` });
   return `
-    <div class="page-head"><div><h1>Manajemen Pengguna</h1><p>${all.length} akun terdaftar · ${totalSiswa} siswa</p></div>
-      <button class="btn primary" id="add-siswa">+ Tambah Siswa</button></div>
-    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <select class="select" id="filter-role" style="max-width:200px">
-        <option value="all">Semua peran</option><option>siswa</option><option>guru</option><option>admin</option>
-      </select>
-      <input class="input" id="search-user" placeholder="Cari nama, ID, atau desa…" style="max-width:280px"/>
+    <div class="page-head">
+      <div>
+        <h1>Manajemen Pengguna</h1>
+        <p>${DATA.users.length} akun · ${totalSiswa} siswa · ${totalGuru} guru · Menampilkan ${rows.length}</p>
+      </div>
+      <button class="btn primary" id="add-siswa">+ Tambah Siswa</button>
     </div>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px;align-items:center">
+      <select class="select" id="filter-role" style="max-width:180px" aria-label="Filter peran">
+        <option value="all" ${f.userRole==='all'?'selected':''}>Semua peran</option>
+        <option value="siswa" ${f.userRole==='siswa'?'selected':''}>Siswa</option>
+        <option value="guru" ${f.userRole==='guru'?'selected':''}>Guru</option>
+        <option value="admin" ${f.userRole==='admin'?'selected':''}>Admin</option>
+      </select>
+      <select class="select" id="filter-paket" style="max-width:160px" aria-label="Filter paket">
+        <option value="all" ${f.userPaket==='all'?'selected':''}>Semua paket</option>
+        <option value="A" ${f.userPaket==='A'?'selected':''}>Paket A</option>
+        <option value="B" ${f.userPaket==='B'?'selected':''}>Paket B</option>
+        <option value="C" ${f.userPaket==='C'?'selected':''}>Paket C</option>
+      </select>
+      <input class="input" id="search-user" placeholder="Cari nama, ID, atau desa…" style="max-width:260px;flex:1;min-width:160px" value="${escapeHtml(f.userQuery)}" />
+      ${activeFilters.length ? `
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          ${activeFilters.map(af=>`<button type="button" class="badge clickable" data-clear-filter="${af.k}" title="Hapus filter">${escapeHtml(af.label)} ✕</button>`).join('')}
+          <button type="button" class="btn sm" id="clear-all-filters">Reset semua</button>
+        </div>` : ''}
+    </div>
+    ${rows.length === 0 ? `
+      <div class="empty-state">
+        <h4>Tidak ada pengguna yang cocok</h4>
+        <p>Coba ubah filter, atau tambahkan akun baru lewat tombol <b>+ Tambah Siswa</b>.</p>
+      </div>` : `
     <div class="table-wrap">
       <table id="user-table">
-        <thead><tr><th>Nama</th><th>ID / Login</th><th>Peran</th><th>Paket</th><th>Desa</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+        <thead><tr>
+          <th class="sortable" data-sort="name"   aria-sort="${ariaSort('name')}"  >Nama</th>
+          <th class="sortable" data-sort="login"  aria-sort="${ariaSort('login')}" >ID / Login</th>
+          <th class="sortable" data-sort="role"   aria-sort="${ariaSort('role')}"  >Peran</th>
+          <th class="sortable" data-sort="paket"  aria-sort="${ariaSort('paket')}" >Paket</th>
+          <th class="sortable" data-sort="desa"   aria-sort="${ariaSort('desa')}"  >Desa</th>
+          <th class="sortable" data-sort="joined" aria-sort="${ariaSort('joined')}">Bergabung</th>
+          <th class="sortable" data-sort="status" aria-sort="${ariaSort('status')}">Status</th>
+          <th>Aksi</th>
+        </tr></thead>
         <tbody>
-          ${all.map(u=>{
+          ${rows.map(u=>{
             const isCustom = !seedIds.has(u.id);
             const loginId = u.nis || u.email || '-';
-            const wilayah = [u.desa, u.kecamatan, u.kota].filter(x=>x && x!=='-').join(', ');
-            return `<tr>
-            <td>${escapeHtml(u.name)}</td>
-            <td><code style="font-size:.82rem">${escapeHtml(loginId)}</code></td>
-            <td><span class="badge ${u.role==='admin'?'danger':u.role==='guru'?'info':'ok'}">${u.role}</span></td>
-            <td>${u.paket?(Array.isArray(u.paket)?u.paket.join(', '):u.paket):'-'}</td>
-            <td>${escapeHtml(wilayah || '-')}</td>
-            <td>${fmtDate(u.joined||'2025-01-01')}</td>
-            <td>${isCustom?`<button class="btn sm danger" data-del-user="${escapeHtml(u.id)}">Hapus</button>`:'<span class="muted" style="font-size:.82rem">Bawaan</span>'}</td>
-          </tr>`;
+            const paketLabel = u.paket ? (Array.isArray(u.paket)?u.paket.join(', '):u.paket) : '-';
+            const wilayah = [u.desa, u.kecamatan, u.kota].filter(x=>x && x!=='-').join(', ') || '-';
+            const status = u.disabled
+              ? `<span class="badge danger">Nonaktif</span>`
+              : `<span class="badge ok">Aktif</span>`;
+            return `<tr class="row-click" data-row-user="${escapeHtml(u.id)}" tabindex="0">
+              <td><button class="name-link" type="button" data-user-detail="${escapeHtml(u.id)}">${escapeHtml(u.name)}</button></td>
+              <td><code style="font-size:.82rem">${escapeHtml(loginId)}</code></td>
+              <td><button class="badge clickable ${u.role==='admin'?'danger':u.role==='guru'?'info':'ok'}" type="button" data-filter-role-set="${escapeHtml(u.role)}">${u.role}</button></td>
+              <td>${paketLabel!=='-'
+                ? `<button class="badge clickable info" type="button" data-filter-paket-set="${escapeHtml(paketLabel)}">${escapeHtml(paketLabel)}</button>`
+                : '-'}</td>
+              <td>${escapeHtml(wilayah)}</td>
+              <td>${fmtDate(u.joined||'2025-01-01')}</td>
+              <td>${status}</td>
+              <td>
+                <div class="action-menu" data-action-menu>
+                  <button type="button" class="btn sm" data-action-trigger aria-haspopup="menu" aria-expanded="false">${isCustom?'Aksi':'Bawaan'} ▾</button>
+                  <div class="menu" role="menu">
+                    <button type="button" data-user-detail="${escapeHtml(u.id)}" role="menuitem">👤 Lihat detail</button>
+                    <button type="button" data-user-edit="${escapeHtml(u.id)}" role="menuitem">✎ Edit profil</button>
+                    ${isCustom ? `
+                      <button type="button" data-user-reset="${escapeHtml(u.id)}" role="menuitem">🔑 Reset password</button>
+                      <button type="button" data-user-toggle="${escapeHtml(u.id)}" role="menuitem">${u.disabled?'✓ Aktifkan':'⏸ Nonaktifkan'}</button>
+                      <button type="button" data-user-activity="${escapeHtml(u.id)}" role="menuitem">📊 Lihat aktivitas</button>
+                      <hr/>
+                      <button type="button" data-del-user="${escapeHtml(u.id)}" class="danger" role="menuitem">🗑 Hapus akun</button>
+                    ` : `
+                      <button type="button" data-user-activity="${escapeHtml(u.id)}" role="menuitem">📊 Lihat aktivitas</button>`}
+                  </div>
+                </div>
+              </td>
+            </tr>`;
           }).join('')}
         </tbody>
       </table>
-    </div>
+    </div>`}
   `;
 }
 
@@ -2297,22 +2397,147 @@ function bindViewActions(){
     toast('Pengumuman dihapus','info'); navigate(App.view);
   }));
 
-  // Search siswa table
+  // Search siswa table (legacy guru view)
   const ss = $('#siswa-search'); if(ss) ss.addEventListener('input', e=>filterTable('siswa-table', e.target.value));
-  const su = $('#search-user'); if(su) su.addEventListener('input', e=>filterTable('user-table', e.target.value));
-  const fr = $('#filter-role'); if(fr) fr.addEventListener('change', e=>filterTable('user-table', e.target.value==='all'?'':e.target.value));
+
+  // ===== Admin: Manajemen Pengguna filters =====
+  const fr = $('#filter-role');
+  if(fr) fr.addEventListener('change', e=>{ App.filters.userRole = e.target.value; navigate('pengguna'); });
+  const fp = $('#filter-paket');
+  if(fp) fp.addEventListener('change', e=>{ App.filters.userPaket = e.target.value; navigate('pengguna'); });
+  const su = $('#search-user');
+  if(su){
+    let qt;
+    su.addEventListener('input', e => {
+      clearTimeout(qt);
+      const v = e.target.value;
+      qt = setTimeout(()=>{ App.filters.userQuery = v; navigate('pengguna');
+        // Restore caret to end after re-render
+        const next = $('#search-user'); if(next){ next.focus(); next.setSelectionRange(v.length, v.length); }
+      }, 220);
+    });
+  }
+  $$('[data-clear-filter]').forEach(b => b.addEventListener('click', e=>{
+    const k = e.currentTarget.dataset.clearFilter;
+    if(k==='role')  App.filters.userRole  = 'all';
+    if(k==='paket') App.filters.userPaket = 'all';
+    if(k==='query') App.filters.userQuery = '';
+    navigate('pengguna');
+  }));
+  const caf = $('#clear-all-filters');
+  if(caf) caf.addEventListener('click', ()=>{
+    App.filters.userRole='all'; App.filters.userPaket='all'; App.filters.userQuery='';
+    toast('Semua filter direset','info',1500);
+    navigate('pengguna');
+  });
+  // Sortable columns
+  $$('#user-table th.sortable').forEach(th => th.addEventListener('click', e=>{
+    const col = e.currentTarget.dataset.sort;
+    const f = App.filters.userSort;
+    if(f.col === col) f.dir = f.dir==='asc'?'desc':'asc';
+    else { f.col = col; f.dir = 'asc'; }
+    navigate('pengguna');
+  }));
+  $$('#user-table th.sortable').forEach(th => th.addEventListener('keydown', e=>{
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.currentTarget.click(); }
+  }));
+  // Make sortable headers focusable
+  $$('#user-table th.sortable').forEach(th => th.setAttribute('tabindex','0'));
+  // Row click → user detail
+  $$('tr.row-click[data-row-user]').forEach(tr => tr.addEventListener('click', e => {
+    // Skip if click landed on actionable inner element
+    if(e.target.closest('button, .action-menu, code, a')) return;
+    openUserDetail(tr.dataset.rowUser);
+  }));
+  $$('tr.row-click[data-row-user]').forEach(tr => tr.addEventListener('keydown', e => {
+    if(e.key==='Enter'){ openUserDetail(tr.dataset.rowUser); }
+  }));
+  // Name link → detail
+  $$('[data-user-detail]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    openUserDetail(e.currentTarget.dataset.userDetail);
+  }));
+  // Badge filter (role/paket)
+  $$('[data-filter-role-set]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation();
+    App.filters.userRole = e.currentTarget.dataset.filterRoleSet;
+    toast(`Filter: peran ${App.filters.userRole}`,'info',1500);
+    navigate('pengguna');
+  }));
+  $$('[data-filter-paket-set]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation();
+    App.filters.userPaket = e.currentTarget.dataset.filterPaketSet;
+    toast(`Filter: Paket ${App.filters.userPaket}`,'info',1500);
+    navigate('pengguna');
+  }));
+  // Action menu trigger
+  $$('[data-action-trigger]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const menu = e.currentTarget.closest('.action-menu');
+    const wasOpen = menu.classList.contains('open');
+    document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open'));
+    if(!wasOpen) menu.classList.add('open');
+    e.currentTarget.setAttribute('aria-expanded', !wasOpen);
+  }));
+  // Action menu items
+  $$('[data-user-edit]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation(); openEditUserModal(e.currentTarget.dataset.userEdit);
+  }));
+  $$('[data-user-reset]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation(); openResetPwModal(e.currentTarget.dataset.userReset);
+  }));
+  $$('[data-user-toggle]').forEach(b => b.addEventListener('click', async e=>{
+    e.stopPropagation();
+    const u = DATA.users.find(x => x.id===e.currentTarget.dataset.userToggle);
+    if(!u) return;
+    const ok = await confirmDialog({
+      title:u.disabled?'Aktifkan akun?':'Nonaktifkan akun?',
+      message:u.disabled?`Akun <b>${escapeHtml(u.name)}</b> akan kembali bisa login.`:`Akun <b>${escapeHtml(u.name)}</b> tidak akan bisa login sampai diaktifkan kembali.`,
+      confirmText:u.disabled?'Aktifkan':'Nonaktifkan', danger:!u.disabled,
+    });
+    if(!ok) return;
+    u.disabled = !u.disabled;
+    saveCustomUsers();
+    toast(u.disabled?'Akun dinonaktifkan':'Akun diaktifkan','info');
+    navigate('pengguna');
+  }));
+  $$('[data-user-activity]').forEach(b => b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const u = DATA.users.find(x => x.id===e.currentTarget.dataset.userActivity);
+    if(!u) return;
+    openModal(`Aktivitas: ${u.name}`, `
+      <p class="muted" style="font-size:.85rem">Riwayat 7 hari terakhir</p>
+      <div class="stack" style="gap:6px">
+        <div class="activity-item" style="cursor:default"><div class="dot"></div><div class="meta"><time>${fmtRel(Date.now()-2*3600e3)}</time><p>Login dari perangkat baru.</p></div></div>
+        <div class="activity-item" style="cursor:default"><div class="dot"></div><div class="meta"><time>${fmtRel(Date.now()-12*3600e3)}</time><p>Menyelesaikan materi <i>Aljabar Linear</i>.</p></div></div>
+        <div class="activity-item" style="cursor:default"><div class="dot"></div><div class="meta"><time>${fmtRel(Date.now()-26*3600e3)}</time><p>Mengerjakan kuis <i>Geometri</i> · Skor 80%.</p></div></div>
+        <div class="activity-item" style="cursor:default"><div class="dot"></div><div class="meta"><time>${fmtRel(Date.now()-3*86400e3)}</time><p>Bergabung di kelas ${escapeHtml(u.kelas||'—')}.</p></div></div>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:14px 0"/>
+      <div class="row" style="justify-content:flex-end">
+        <button type="button" class="btn primary" id="ua-detail">Buka detail profil →</button>
+      </div>
+    `);
+    $('#ua-detail').addEventListener('click', ()=>{ closeModal(); openUserDetail(u.id); });
+  }));
 
   // Admin: tambah siswa baru
   const addSiswaBtn = $('#add-siswa');
   if(addSiswaBtn) addSiswaBtn.addEventListener('click', () => openAddSiswaModal());
 
-  // Admin: hapus siswa custom
-  $$('[data-del-user]').forEach(b => b.addEventListener('click', e => {
+  // Admin: hapus siswa custom (action menu item)
+  $$('[data-del-user]').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
     const uid = e.currentTarget.dataset.delUser;
     const u = DATA.users.find(x => x.id===uid);
     if(!u) return;
     const loginId = u.nis || u.email || '-';
-    if(!confirm(`Hapus akun "${u.name}" (${loginId})? Tindakan ini tidak bisa dibatalkan.`)) return;
+    const ok = await confirmDialog({
+      title:'Hapus akun?',
+      message:`Akun <b>${escapeHtml(u.name)}</b> (<code>${escapeHtml(loginId)}</code>) akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`,
+      confirmText:'Ya, hapus', danger:true,
+    });
+    if(!ok) return;
     DATA.users = DATA.users.filter(x => x.id!==uid);
     saveCustomUsers();
     toast(`Akun ${u.name} dihapus`,'info');
