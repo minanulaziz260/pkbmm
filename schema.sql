@@ -2,17 +2,14 @@
 -- PKBM MUGI SAE — Database Schema
 -- MySQL 8+ / MariaDB 10.5+
 --
--- Cara pakai (lokal):
---   mysql -u root -p < schema.sql
--- atau buat DB dulu lalu:
+-- File ini TIDAK membuat database. Database harus sudah ada
+-- (di-create manual atau di-provision oleh penyedia, mis.
+-- Clever Cloud / Aiven / Pterodactyl). Jalankan dengan database
+-- terpilih, contoh:
 --   mysql -u pkbm -p pkbm_mugisae < schema.sql
+-- atau lewat skrip:
+--   node scripts/init-db.js   (otomatis pakai DB_NAME dari .env)
 -- ============================================================
-
-CREATE DATABASE IF NOT EXISTS `pkbm_mugisae`
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `pkbm_mugisae`;
 
 -- ============================================================
 -- Tabel: users
