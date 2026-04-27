@@ -137,6 +137,18 @@
   .btn.primary:focus-visible{outline:none;box-shadow:0 0 0 3px var(--primary-50), 0 8px 20px -6px rgba(13,148,136,.55)}
   .btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
   .btn.ghost:hover{background:var(--surface-2);box-shadow:none}
+  .btn[disabled],.btn.is-loading{pointer-events:none;opacity:.7;cursor:wait}
+  .btn.is-loading{position:relative}
+  .btn.is-loading::after{content:"";position:absolute;width:14px;height:14px;border:2px solid currentColor;
+    border-top-color:transparent;border-radius:50%;animation:btn-spin .7s linear infinite;
+    right:14px;top:50%;margin-top:-7px;opacity:.85}
+  @keyframes btn-spin{to{transform:rotate(360deg)}}
+  .btn.is-loading > *{opacity:.7}
+  /* Skeleton/loading bar for views */
+  .loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--primary-grad);width:0;z-index:9999;
+    transition:width .25s var(--ease),opacity .3s;pointer-events:none}
+  .loading-bar.active{width:75%}
+  .loading-bar.done{width:100%;opacity:0}
   .btn.outline{background:transparent;border-color:var(--border-strong);color:var(--text)}
   .btn.outline:hover{border-color:var(--primary);color:var(--primary)}
   .btn.danger{background:var(--danger-grad);color:#fff;border-color:transparent;
@@ -500,7 +512,8 @@
 
   /* Bar chart (CSS) */
   .barchart{display:flex;align-items:flex-end;gap:10px;height:200px;padding:8px 0;border-bottom:1px dashed var(--border)}
-  .barchart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.72rem;color:var(--text-muted);font-weight:600;
+  .barchart .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;
+    font-size:.72rem;color:var(--text-muted);font-weight:600;height:100%;
     background:transparent;border:0;padding:0;cursor:default;font-family:inherit}
   button.bar{cursor:pointer}
   button.bar:focus-visible{outline:2px solid var(--primary);outline-offset:4px;border-radius:8px}
@@ -1297,6 +1310,30 @@ function buildBottomNav(){
 }
 
 /* ===== Router ===== */
+function showLoadingBar(){
+  let bar = document.getElementById('loading-bar');
+  if(!bar){ bar = document.createElement('div'); bar.id='loading-bar'; bar.className='loading-bar'; document.body.appendChild(bar); }
+  bar.classList.remove('done');
+  // re-trigger
+  // eslint-disable-next-line no-unused-expressions
+  void bar.offsetWidth;
+  bar.classList.add('active');
+  return bar;
+}
+function hideLoadingBar(){
+  const bar = document.getElementById('loading-bar');
+  if(!bar) return;
+  bar.classList.remove('active');
+  bar.classList.add('done');
+  setTimeout(()=>{ bar.classList.remove('done'); bar.style.width=''; }, 350);
+}
+function withButtonLoading(btn, fn){
+  if(!btn) return Promise.resolve(fn());
+  btn.classList.add('is-loading'); btn.disabled = true;
+  return Promise.resolve().then(fn).finally(()=>{
+    btn.classList.remove('is-loading'); btn.disabled = false;
+  });
+}
 function navigate(view){
   App.view = view;
   history.replaceState(null,'','#'+view);
@@ -1304,6 +1341,7 @@ function navigate(view){
   const r = $('#view-root');
   r.scrollIntoView({behavior:'instant',block:'start'});
   $('#main-content').focus({preventScroll:true});
+  showLoadingBar();
   const role = App.user.role;
   const map = {
     siswa: {
@@ -1331,6 +1369,7 @@ function navigate(view){
   try{ animateCounters(r); }catch(e){}
   // Reflow on view change for sticky/sidebar focus
   try{ document.getElementById('main-content').focus({preventScroll:true}); }catch(e){}
+  hideLoadingBar();
 }
 
 /* ===== Views: SISWA ===== */
