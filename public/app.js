@@ -23,6 +23,23 @@
         throw new Error('redirected');
       }
     },
+    /** Pastikan user login DAN punya role di whitelist. Selain itu redirect. */
+    requireRoleOrRedirect(allowedRoles, fallback) {
+      this.requireOrRedirect('/login.html');
+      const role = (this.user && this.user.role) || '';
+      const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+      if (!allowed.includes(role)) {
+        window.location.href = fallback || '/dashboard.html';
+        throw new Error('forbidden');
+      }
+    },
+  };
+
+  /** Menu yang boleh dilihat per role. */
+  const ROLE_MENU = {
+    admin: ['dashboard', 'users', 'packages', 'curriculum'],
+    guru:  ['dashboard', 'curriculum'],
+    siswa: ['dashboard'],
   };
 
   /* ===== HTTP wrapper around fetch with JWT ===== */
@@ -117,12 +134,14 @@
   /* ===== Header / nav rendering for protected pages ===== */
   function renderHeader(activeKey) {
     const u = Auth.user || {};
+    const role = u.role || 'siswa';
+    const allowedKeys = ROLE_MENU[role] || ROLE_MENU.siswa;
     const links = [
       { key: 'dashboard',  href: '/dashboard.html',  label: 'Dashboard' },
       { key: 'users',      href: '/users.html',      label: 'Pengguna' },
       { key: 'packages',   href: '/packages.html',   label: 'Paket' },
       { key: 'curriculum', href: '/curriculum.html', label: 'Kurikulum' },
-    ];
+    ].filter(l => allowedKeys.includes(l.key));
     const html = `
       <header class="app-header">
         <div class="brand">

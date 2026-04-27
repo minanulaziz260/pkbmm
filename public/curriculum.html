@@ -31,7 +31,7 @@
 <script src="/app.js"></script>
 <script>
   const { Auth, api, toast, openModal, closeModal, escapeHtml, renderHeader } = window.PKBM;
-  Auth.requireOrRedirect('/login.html');
+  Auth.requireRoleOrRedirect(['admin', 'guru'], '/dashboard.html');
   renderHeader('curriculum');
 
   const url = new URL(window.location.href);

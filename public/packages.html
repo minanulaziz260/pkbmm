@@ -22,7 +22,7 @@
 <script src="/app.js"></script>
 <script>
   const { Auth, api, toast, openModal, closeModal, escapeHtml, renderHeader } = window.PKBM;
-  Auth.requireOrRedirect('/login.html');
+  Auth.requireRoleOrRedirect('admin', '/dashboard.html');
   renderHeader('packages');
 
   async function load() {

@@ -8,78 +8,158 @@
 </head>
 <body>
 <main class="container">
-  <h1>Selamat datang <span id="hello-name" class="muted"></span></h1>
-  <p class="muted">Ringkasan platform PKBM MUGI SAE.</p>
+  <h1 id="hello-title">Selamat datang <span id="hello-name" class="muted"></span></h1>
+  <p class="muted" id="hello-sub">Memuat…</p>
 
-  <div class="grid cols-2" style="margin-top:18px">
-    <div class="card">
-      <h3>Pengguna</h3>
-      <div id="stat-users" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
-      <p class="muted" id="stat-users-detail">Memuat…</p>
-      <a class="btn" href="/users.html">Kelola Pengguna →</a>
-    </div>
-    <div class="card">
-      <h3>Paket</h3>
-      <div id="stat-packages" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
-      <p class="muted" id="stat-packages-detail">Memuat…</p>
-      <a class="btn" href="/packages.html">Lihat Paket →</a>
-    </div>
-    <div class="card">
-      <h3>Mata pelajaran</h3>
-      <div id="stat-subjects" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
-      <p class="muted" id="stat-subjects-detail">Memuat…</p>
-      <a class="btn" href="/curriculum.html">Buka Kurikulum →</a>
-    </div>
-    <div class="card">
-      <h3>Status server</h3>
-      <div id="stat-health" style="font-size:1.1rem;font-weight:700">Mengecek…</div>
-      <p class="muted">Endpoint <code>/api/health</code> pakai MySQL pool.</p>
-    </div>
-  </div>
+  <div id="dash-body" style="margin-top:18px"></div>
 </main>
 <script src="/app.js"></script>
 <script>
   const { Auth, api, renderHeader, escapeHtml } = window.PKBM;
   Auth.requireOrRedirect('/login.html');
   renderHeader('dashboard');
-  document.getElementById('hello-name').textContent = (Auth.user && Auth.user.name) ? '— ' + Auth.user.name : '';
 
-  (async () => {
-    try {
-      const [users, packs, curri, health] = await Promise.all([
-        api('GET', '/api/users'),
-        api('GET', '/api/packages'),
-        api('GET', '/api/curriculum'),
-        fetch('/api/health').then(r => r.json()).catch(() => ({ ok:false })),
-      ]);
-      document.getElementById('stat-users').textContent = users.count;
-      const siswa = users.users.filter(u => u.role === 'siswa').length;
-      const guru  = users.users.filter(u => u.role === 'guru').length;
-      const admin = users.users.filter(u => u.role === 'admin').length;
-      document.getElementById('stat-users-detail').textContent =
-        `${siswa} siswa · ${guru} guru · ${admin} admin`;
+  const u = Auth.user || {};
+  document.getElementById('hello-name').textContent = u.name ? '— ' + u.name : '';
+  const role = u.role || 'siswa';
 
-      document.getElementById('stat-packages').textContent = packs.packages.length;
-      document.getElementById('stat-packages-detail').textContent =
-        packs.packages.map(p => p.code).join(' · ') || '-';
+  const subText = {
+    admin: 'Ringkasan platform PKBM MUGI SAE.',
+    guru:  'Ringkasan paket & kurikulum yang Anda ajar.',
+    siswa: 'Ringkasan paket Anda dan materi belajar.',
+  };
+  document.getElementById('hello-sub').textContent = subText[role] || subText.siswa;
 
-      document.getElementById('stat-subjects').textContent = curri.subjects.length;
-      const totalMat = curri.subjects.reduce((a, s) => a + (s.material_count || 0), 0);
-      const totalKuis = curri.subjects.reduce((a, s) => a + (s.quiz_count || 0), 0);
-      document.getElementById('stat-subjects-detail').textContent =
-        `${totalMat} materi · ${totalKuis} kuis`;
+  const body = document.getElementById('dash-body');
 
-      const h = document.getElementById('stat-health');
-      if (health.ok) {
-        h.innerHTML = '<span class="badge ok">● Online</span> ' +
-          '<span class="muted">DB: ' + escapeHtml(health.db || '?') + '</span>';
-      } else {
-        h.innerHTML = '<span class="badge danger">● Bermasalah</span>';
+  if (role === 'admin') {
+    body.innerHTML = `
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Pengguna</h3>
+          <div id="stat-users" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+          <p class="muted" id="stat-users-detail">Memuat…</p>
+          <a class="btn" href="/users.html">Kelola Pengguna →</a>
+        </div>
+        <div class="card">
+          <h3>Paket</h3>
+          <div id="stat-packages" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+          <p class="muted" id="stat-packages-detail">Memuat…</p>
+          <a class="btn" href="/packages.html">Lihat Paket →</a>
+        </div>
+        <div class="card">
+          <h3>Mata pelajaran</h3>
+          <div id="stat-subjects" style="font-size:2rem;font-weight:800;color:var(--primary-2)">…</div>
+          <p class="muted" id="stat-subjects-detail">Memuat…</p>
+          <a class="btn" href="/curriculum.html">Buka Kurikulum →</a>
+        </div>
+        <div class="card">
+          <h3>Status server</h3>
+          <div id="stat-health" style="font-size:1.1rem;font-weight:700">Mengecek…</div>
+          <p class="muted">Endpoint <code>/api/health</code> pakai MySQL pool.</p>
+        </div>
+      </div>`;
+
+    (async () => {
+      try {
+        const [users, packs, curri, health] = await Promise.all([
+          api('GET', '/api/users'),
+          api('GET', '/api/packages'),
+          api('GET', '/api/curriculum'),
+          fetch('/api/health').then(r => r.json()).catch(() => ({ ok:false })),
+        ]);
+        document.getElementById('stat-users').textContent = users.count;
+        const siswa = users.users.filter(u => u.role === 'siswa').length;
+        const guru  = users.users.filter(u => u.role === 'guru').length;
+        const admin = users.users.filter(u => u.role === 'admin').length;
+        document.getElementById('stat-users-detail').textContent =
+          `${siswa} siswa · ${guru} guru · ${admin} admin`;
+        document.getElementById('stat-packages').textContent = packs.packages.length;
+        document.getElementById('stat-packages-detail').textContent =
+          packs.packages.map(p => p.code).join(' · ') || '-';
+        document.getElementById('stat-subjects').textContent = curri.subjects.length;
+        const totalMat = curri.subjects.reduce((a, s) => a + (s.material_count || 0), 0);
+        const totalKuis = curri.subjects.reduce((a, s) => a + (s.quiz_count || 0), 0);
+        document.getElementById('stat-subjects-detail').textContent =
+          `${totalMat} materi · ${totalKuis} kuis`;
+        const h = document.getElementById('stat-health');
+        if (health.ok) {
+          h.innerHTML = '<span class="badge ok">● Online</span> ' +
+            '<span class="muted">DB: ' + escapeHtml(health.db || '?') + '</span>';
+        } else {
+          h.innerHTML = '<span class="badge danger">● Bermasalah</span>';
+        }
+      } catch (err) {
+        document.querySelectorAll('[id^=stat-]').forEach(el => { if (el.textContent === '…') el.textContent = '—'; });
       }
-    } catch (err) {
-      document.querySelectorAll('[id^=stat-]').forEach(el => { if (el.textContent === '…') el.textContent = '—'; });
+    })();
+  } else {
+    /* ===== Guru & Siswa ===== */
+    body.innerHTML = `
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Paket Anda</h3>
+          <div id="my-pakets" class="muted">Memuat…</div>
+        </div>
+        <div class="card">
+          <h3>Mata pelajaran tersedia</h3>
+          <div id="my-subjects" class="muted">Memuat…</div>
+          <a class="btn" href="/curriculum.html" style="margin-top:8px">Buka Kurikulum →</a>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Profil singkat</h3>
+        <div id="profile-info" class="muted">Memuat…</div>
+      </div>`;
+
+    const myPakets = Array.isArray(u.paket) ? u.paket : (u.paket ? [u.paket] : []);
+    const pakBox = document.getElementById('my-pakets');
+    if (myPakets.length === 0) {
+      pakBox.textContent = role === 'guru'
+        ? 'Anda belum di-assign ke paket apapun. Hubungi admin.'
+        : 'Anda belum terdaftar di paket apapun. Hubungi admin sekolah.';
+    } else {
+      pakBox.innerHTML = myPakets.map(p => `<span class="badge">${escapeHtml(String(p))}</span>`).join(' ');
     }
-  })();
+
+    /* Profile */
+    const lines = [];
+    lines.push(`<div><strong>ID:</strong> ${escapeHtml(u.user_id || '-')}</div>`);
+    lines.push(`<div><strong>Email:</strong> ${escapeHtml(u.email || '-')}</div>`);
+    lines.push(`<div><strong>Peran:</strong> ${escapeHtml(role)}</div>`);
+    if (role === 'siswa') {
+      lines.push(`<div><strong>Desa:</strong> ${escapeHtml(u.desa || '-')}</div>`);
+      lines.push(`<div><strong>Kecamatan:</strong> ${escapeHtml(u.kecamatan || '-')}</div>`);
+      if (u.kelas) lines.push(`<div><strong>Kelas:</strong> ${escapeHtml(u.kelas)}</div>`);
+    }
+    if (role === 'guru' && u.mapel) {
+      lines.push(`<div><strong>Mapel diampu:</strong> ${escapeHtml(u.mapel)}</div>`);
+    }
+    document.getElementById('profile-info').innerHTML = lines.join('');
+
+    (async () => {
+      try {
+        const curri = await api('GET', '/api/curriculum');
+        const subj = curri.subjects || [];
+        const filtered = myPakets.length
+          ? subj.filter(s => myPakets.includes(s.package_code))
+          : subj;
+        const box = document.getElementById('my-subjects');
+        if (filtered.length === 0) {
+          box.textContent = 'Belum ada mata pelajaran untuk paket Anda.';
+        } else {
+          box.innerHTML = filtered.slice(0, 8).map(s =>
+            `<div style="margin:4px 0">
+               <strong>${escapeHtml(s.name)}</strong>
+               <span class="muted">· Paket ${escapeHtml(s.package_code)} · ${s.material_count || 0} materi · ${s.quiz_count || 0} kuis</span>
+             </div>`
+          ).join('') + (filtered.length > 8 ? `<div class="muted" style="margin-top:6px">…dan ${filtered.length - 8} lagi.</div>` : '');
+        }
+      } catch (err) {
+        document.getElementById('my-subjects').textContent = 'Gagal memuat: ' + (err.message || 'error');
+      }
+    })();
+  }
 </script>
 </body>
 </html>
